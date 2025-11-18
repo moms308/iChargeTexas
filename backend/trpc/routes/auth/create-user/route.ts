@@ -34,7 +34,7 @@ export const createUserProcedure = protectedProcedure
       ? JSON.parse(usersData as string)
       : [];
 
-    const existingUser = users.find((u) => u.username === input.username);
+    const existingUser = users.find((u) => u.username.toLowerCase() === input.username.toLowerCase());
     if (existingUser) {
       return {
         success: false,

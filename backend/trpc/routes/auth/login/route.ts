@@ -46,7 +46,7 @@ export const loginProcedure = publicProcedure
     }
 
     const user = users.find(
-      (u) => u.username === input.username && u.password === input.password
+      (u) => u.username.toLowerCase() === input.username.toLowerCase() && u.password === input.password
     );
 
     if (!user) {
