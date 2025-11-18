@@ -355,116 +355,106 @@ export default function UsersScreen() {
             </View>
           )}
 
-          {managedUsers.length === 0 ? (
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIconContainer}>
-                <Users color={colors.textTertiary} size={64} />
-              </View>
-              <Text style={styles.emptyTitle}>No Users</Text>
-              <Text style={styles.emptyMessage}>Create your first admin or worker account to get started</Text>
-            </View>
-          ) : (
-            <View style={styles.userList}>
-              {managedUsers.map((user) => (
-                <View key={user.id} style={[styles.userCard, !user.isActive && styles.userCardInactive]}>
-                  <View style={styles.userCardHeader}>
-                    <View style={styles.userInfo}>
-                      <View style={[styles.userIconContainer, { backgroundColor: getRoleBadgeColor(user.role) + "20" }]}>
-                        {getRoleIcon(user.role)}
-                      </View>
-                      <View style={styles.userTextContainer}>
-                        <Text style={styles.userName}>{user.fullName}</Text>
-                        <Text style={styles.userUsername}>@{user.username}</Text>
-                      </View>
+          <View style={styles.userList}>
+            {managedUsers.map((user) => (
+              <View key={user.id} style={[styles.userCard, !user.isActive && styles.userCardInactive]}>
+                <View style={styles.userCardHeader}>
+                  <View style={styles.userInfo}>
+                    <View style={[styles.userIconContainer, { backgroundColor: getRoleBadgeColor(user.role) + "20" }]}>
+                      {getRoleIcon(user.role)}
                     </View>
-                    <View style={[styles.roleBadge, { backgroundColor: getRoleBadgeColor(user.role) + "20" }]}>
-                      <Text style={[styles.roleText, { color: getRoleBadgeColor(user.role) }]}>
-                        {getRoleDisplayName(user.role)}
-                      </Text>
+                    <View style={styles.userTextContainer}>
+                      <Text style={styles.userName}>{user.fullName}</Text>
+                      <Text style={styles.userUsername}>@{user.username}</Text>
                     </View>
                   </View>
-
-                  <View style={styles.userCardDetails}>
-                    <View style={styles.detailRow}>
-                      <Mail color={colors.textSecondary} size={14} />
-                      <Text style={styles.detailText}>{user.email}</Text>
-                    </View>
-                    {user.phone && (
-                      <TouchableOpacity
-                        style={styles.phoneButton}
-                        onPress={() => {
-                          const phoneNumber = user.phone?.replace(/[^0-9+]/g, '');
-                          if (phoneNumber) {
-                            Linking.openURL(`tel:${phoneNumber}`).catch((err) => {
-                              console.error('[UsersScreen] Error opening phone dialer:', err);
-                              Alert.alert('Error', 'Unable to open phone dialer');
-                            });
-                          }
-                        }}
-                        activeOpacity={0.6}
-                      >
-                        <Phone color={colors.primary} size={14} />
-                        <Text style={styles.phoneButtonText}>{user.phone}</Text>
-                      </TouchableOpacity>
-                    )}
-                    <View style={styles.detailRow}>
-                      <Calendar color={colors.textSecondary} size={14} />
-                      <Text style={styles.detailText}>
-                        Created {new Date(user.createdAt).toLocaleDateString()}
-                      </Text>
-                    </View>
+                  <View style={[styles.roleBadge, { backgroundColor: getRoleBadgeColor(user.role) + "20" }]}>
+                    <Text style={[styles.roleText, { color: getRoleBadgeColor(user.role) }]}>
+                      {getRoleDisplayName(user.role)}
+                    </Text>
                   </View>
+                </View>
 
-                  <View style={styles.userCardActions}>
-                    <View style={styles.statusContainer}>
-                      {user.isActive ? (
-                        <View style={styles.activeStatus}>
-                          <CheckCircle color={colors.success} size={14} />
-                          <Text style={[styles.statusText, { color: colors.success }]}>Active</Text>
-                        </View>
-                      ) : (
-                        <View style={styles.inactiveStatus}>
-                          <XCircle color={colors.error} size={14} />
-                          <Text style={[styles.statusText, { color: colors.error }]}>Inactive</Text>
-                        </View>
-                      )}
-                    </View>
-                    {user.role !== "super_admin" && currentUser && (currentUser.role === "admin" || currentUser.role === "super_admin") && (
-                      <TouchableOpacity
-                        style={styles.deleteButton}
-                        onPress={() => handleDeleteUser(user)}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      >
-                        <Trash2 color={colors.error} size={16} />
-                        <Text style={[styles.deleteButtonText, { color: colors.error }]}>Delete</Text>
-                      </TouchableOpacity>
+                <View style={styles.userCardDetails}>
+                  <View style={styles.detailRow}>
+                    <Mail color={colors.textSecondary} size={14} />
+                    <Text style={styles.detailText}>{user.email}</Text>
+                  </View>
+                  {user.phone && (
+                    <TouchableOpacity
+                      style={styles.phoneButton}
+                      onPress={() => {
+                        const phoneNumber = user.phone?.replace(/[^0-9+]/g, '');
+                        if (phoneNumber) {
+                          Linking.openURL(`tel:${phoneNumber}`).catch((err) => {
+                            console.error('[UsersScreen] Error opening phone dialer:', err);
+                            Alert.alert('Error', 'Unable to open phone dialer');
+                          });
+                        }
+                      }}
+                      activeOpacity={0.6}
+                    >
+                      <Phone color={colors.primary} size={14} />
+                      <Text style={styles.phoneButtonText}>{user.phone}</Text>
+                    </TouchableOpacity>
+                  )}
+                  <View style={styles.detailRow}>
+                    <Calendar color={colors.textSecondary} size={14} />
+                    <Text style={styles.detailText}>
+                      Created {new Date(user.createdAt).toLocaleDateString()}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.userCardActions}>
+                  <View style={styles.statusContainer}>
+                    {user.isActive ? (
+                      <View style={styles.activeStatus}>
+                        <CheckCircle color={colors.success} size={14} />
+                        <Text style={[styles.statusText, { color: colors.success }]}>Active</Text>
+                      </View>
+                    ) : (
+                      <View style={styles.inactiveStatus}>
+                        <XCircle color={colors.error} size={14} />
+                        <Text style={[styles.statusText, { color: colors.error }]}>Inactive</Text>
+                      </View>
                     )}
                   </View>
-
-                  {user.permissions && (
-                    <View style={styles.permissionsPreview}>
-                      <Text style={styles.permissionsTitle}>Permissions</Text>
-                      <View style={styles.permissionsGrid}>
-                        {Object.entries(user.permissions).filter(([, value]) => value).slice(0, 3).map(([key]) => (
-                          <View key={key} style={styles.permissionTag}>
-                            <CheckCircle color={colors.success} size={12} />
-                            <Text style={styles.permissionTagText}>
-                              {key.replace(/can/, '').replace(/([A-Z])/g, " $1").trim()}
-                            </Text>
-                          </View>
-                        ))}
-                        {Object.values(user.permissions).filter(v => v).length > 3 && (
-                          <Text style={styles.morePermissions}>
-                            +{Object.values(user.permissions).filter(v => v).length - 3} more
-                          </Text>
-                        )}
-                      </View>
-                    </View>
+                  {user.role !== "super_admin" && currentUser && (currentUser.role === "admin" || currentUser.role === "super_admin") && (
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => handleDeleteUser(user)}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <Trash2 color={colors.error} size={16} />
+                      <Text style={[styles.deleteButtonText, { color: colors.error }]}>Delete</Text>
+                    </TouchableOpacity>
                   )}
                 </View>
-              ))}
-            </View>
-          )}
+
+                {user.permissions && (
+                  <View style={styles.permissionsPreview}>
+                    <Text style={styles.permissionsTitle}>Permissions</Text>
+                    <View style={styles.permissionsGrid}>
+                      {Object.entries(user.permissions).filter(([, value]) => value).slice(0, 3).map(([key]) => (
+                        <View key={key} style={styles.permissionTag}>
+                          <CheckCircle color={colors.success} size={12} />
+                          <Text style={styles.permissionTagText}>
+                            {key.replace(/can/, '').replace(/([A-Z])/g, " $1").trim()}
+                          </Text>
+                        </View>
+                      ))}
+                      {Object.values(user.permissions).filter(v => v).length > 3 && (
+                        <Text style={styles.morePermissions}>
+                          +{Object.values(user.permissions).filter(v => v).length - 3} more
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
         </ScrollView>
       </LinearGradient>
     </View>
@@ -670,32 +660,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700" as const,
     color: colors.white,
-  },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 80,
-  },
-  emptyIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 24,
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: "700" as const,
-    color: colors.text,
-    marginBottom: 8,
-  },
-  emptyMessage: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: "center",
-    maxWidth: 280,
   },
   userList: {
     gap: 16,
