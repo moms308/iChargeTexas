@@ -13,7 +13,7 @@ import {
 import { useRouter, Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { LogIn, Shield, Eye, EyeOff, AlertCircle, Users, FileText, LogOut } from "lucide-react-native";
+import { LogIn, Shield, Eye, EyeOff, Users, FileText, LogOut } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import colors from "@/constants/colors";
 import { useAuth } from "@/constants/authContext";
@@ -178,16 +178,6 @@ export default function LoginScreen() {
             </Text>
           </View>
 
-          <View style={styles.infoCard}>
-            <View style={styles.infoHeader}>
-              <AlertCircle color={colors.primary} size={20} />
-              <Text style={styles.infoTitle}>Business Users Only</Text>
-            </View>
-            <Text style={styles.infoText}>
-              This login is for business owners and administrators only. Free customers can use the app without logging in.
-            </Text>
-          </View>
-
           <View style={styles.form}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Username</Text>
@@ -301,30 +291,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     paddingHorizontal: 20,
   },
-  infoCard: {
-    backgroundColor: colors.primary + "15",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 32,
-    borderWidth: 2,
-    borderColor: colors.primary + "30",
-  },
-  infoHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 12,
-  },
-  infoTitle: {
-    fontSize: 16,
-    fontWeight: "700" as const,
-    color: colors.text,
-  },
-  infoText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    lineHeight: 20,
-  },
+
   form: {
     gap: 20,
     marginBottom: 32,
