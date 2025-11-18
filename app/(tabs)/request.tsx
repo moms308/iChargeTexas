@@ -899,7 +899,10 @@ export default function RequestScreen() {
             )}
           </View>
 
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <TouchableOpacity style={[
+            styles.submitButton,
+            serviceType === "charging" && styles.submitButtonCharging,
+          ]} onPress={handleSubmit}>
             <Image
               source={{ uri: "https://r2-pub.rork.com/generated-images/a17fb1cf-ad47-403c-9754-ed7a59d6e7d8.png" }}
               style={styles.mascotButtonIcon}
@@ -1439,6 +1442,9 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
     borderRadius: 12,
     marginTop: 8,
+  },
+  submitButtonCharging: {
+    backgroundColor: "#22C55E",
   },
   submitButtonContent: {
     flex: 1,
