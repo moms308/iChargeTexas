@@ -231,8 +231,8 @@ export default function UserManagementScreen() {
               <View style={styles.emptyIconContainer}>
                 <Users color={colors.textTertiary} size={64} />
               </View>
-              <Text style={styles.emptyTitle}>No Users</Text>
-              <Text style={styles.emptyMessage}>No admin or worker accounts have been created yet. Users can be created from the Admin tab.</Text>
+              <Text style={styles.emptyTitle}>No Staff Members</Text>
+              <Text style={styles.emptyMessage}>No admin or worker accounts have been created yet. Create new staff members using the Admin tab.</Text>
             </View>
           ) : (
             <View style={styles.userList}>

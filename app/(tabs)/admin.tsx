@@ -1673,6 +1673,13 @@ export default function AdminScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.quickActionCard}
+              onPress={handleOpenUserManagement}
+            >
+              <UsersIcon color={"#4CAF50"} size={28} />
+              <Text style={styles.quickActionLabel}>Users</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickActionCard}
               onPress={() => {
                 const newRequest = createTestInvoice();
                 if (Platform.OS !== "web") {
