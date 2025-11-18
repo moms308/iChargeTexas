@@ -70,6 +70,20 @@ export const roadsideServices: RoadsideService[] = [
     afterHoursPrice: 200.00,
     travelFee: 0,
   },
+  {
+    id: "charge_80",
+    name: "80% Charge",
+    basePrice: 0.00,
+    afterHoursPrice: 0.00,
+    travelFee: 0,
+  },
+  {
+    id: "charge_100",
+    name: "100% Charge",
+    basePrice: 0.00,
+    afterHoursPrice: 0.00,
+    travelFee: 0,
+  },
 ];
 
 export function isAfterHours(date?: Date): boolean {

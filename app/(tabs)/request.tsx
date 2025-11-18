@@ -695,9 +695,9 @@ export default function RequestScreen() {
                 {roadsideServices
                   .filter(service => {
                     if (serviceType === "charging") {
-                      return service.id === "generator_charging";
+                      return service.id === "generator_charging" || service.id === "charge_80" || service.id === "charge_100";
                     }
-                    return service.id !== "generator_charging";
+                    return service.id !== "generator_charging" && service.id !== "charge_80" && service.id !== "charge_100";
                   })
                   .map((service) => {
                     const price = calculateServicePrice(service, currentDateTime);
