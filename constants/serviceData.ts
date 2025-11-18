@@ -63,6 +63,13 @@ export const roadsideServices: RoadsideService[] = [
     afterHoursPrice: 210.00,
     travelFee: 25,
   },
+  {
+    id: "generator_charging",
+    name: "Charging via Generator (5 hour minimum)",
+    basePrice: 200.00,
+    afterHoursPrice: 200.00,
+    travelFee: 0,
+  },
 ];
 
 export function isAfterHours(date?: Date): boolean {

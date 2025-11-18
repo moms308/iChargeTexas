@@ -82,7 +82,7 @@ export default function RequestScreen() {
 
   const renderCalendarDays = () => {
     const { firstDay, daysInMonth, year, month } = getDaysInMonth(calendarDate);
-    const days: JSX.Element[] = [];
+    const days: React.ReactElement[] = [];
     const today = new Date();
     
     for (let i = 0; i < firstDay; i++) {
@@ -256,13 +256,20 @@ export default function RequestScreen() {
       return;
     }
 
-    if (spareTireStatus === null) {
-      Alert.alert("Required Field", "Please indicate if you have a spare tire");
-      return;
+    if (serviceType === "roadside") {
+      if (spareTireStatus === null) {
+        Alert.alert("Required Field", "Please indicate if you have a spare tire");
+        return;
+      }
+
+      if (selectedServices.size === 0) {
+        Alert.alert("Required Field", "Please select at least one service");
+        return;
+      }
     }
 
-    if (serviceType === "roadside" && selectedServices.size === 0) {
-      Alert.alert("Required Field", "Please select at least one service");
+    if (serviceType === "charging" && selectedServices.size === 0) {
+      Alert.alert("Required Field", "Please select at least one charging service");
       return;
     }
 
@@ -313,9 +320,9 @@ export default function RequestScreen() {
       vehicleInfo: vehicleInfo.trim(),
       preferredDate,
       preferredTime,
-      hasSpareTire: spareTireStatus === 'yes',
-      selectedServices: serviceType === "roadside" ? selectedServicesData : undefined,
-      totalAmount: serviceType === "roadside" ? total : undefined,
+      hasSpareTire: serviceType === "roadside" ? spareTireStatus === 'yes' : false,
+      selectedServices: selectedServicesData.length > 0 ? selectedServicesData : undefined,
+      totalAmount: selectedServicesData.length > 0 ? total : undefined,
       location: {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
@@ -599,72 +606,74 @@ export default function RequestScreen() {
             </View>
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.label}>
-              Do you have a spare tire? <Text style={styles.required}>*</Text>
-            </Text>
-            <View style={styles.checkboxGroup}>
-              <TouchableOpacity
-                style={[
-                  styles.checkboxOption,
-                  spareTireStatus === 'yes' && styles.checkboxOptionSelected,
-                ]}
-                onPress={() => setSpareTireStatus('yes')}
-                activeOpacity={0.7}
-              >
-                <View style={[
-                  styles.checkboxIcon,
-                  spareTireStatus === 'yes' && styles.checkboxIconSelected,
-                ]}>
-                  {spareTireStatus === 'yes' && (
-                    <Check color={colors.white} size={20} strokeWidth={3} />
-                  )}
-                </View>
-                <Text style={[
-                  styles.checkboxText,
-                  spareTireStatus === 'yes' && styles.checkboxTextSelected,
-                ]}>
-                  Yes, I have a spare tire
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.checkboxOption,
-                  spareTireStatus === 'no' && styles.checkboxOptionSelected,
-                ]}
-                onPress={() => setSpareTireStatus('no')}
-                activeOpacity={0.7}
-              >
-                <View style={[
-                  styles.checkboxIcon,
-                  spareTireStatus === 'no' && styles.checkboxIconSelected,
-                ]}>
-                  {spareTireStatus === 'no' && (
-                    <X color={colors.white} size={20} strokeWidth={3} />
-                  )}
-                </View>
-                <Text style={[
-                  styles.checkboxText,
-                  spareTireStatus === 'no' && styles.checkboxTextSelected,
-                ]}>
-                  No, I don&apos;t have a spare tire
-                </Text>
-              </TouchableOpacity>
-            </View>
-            {spareTireStatus === 'no' && (
-              <View style={styles.noSpareWarning}>
-                <View style={styles.noSpareWarningHeader}>
-                  <AlertCircle color={colors.warning} size={18} />
-                  <Text style={styles.noSpareWarningTitle}>Important Notice</Text>
-                </View>
-                <Text style={styles.noSpareWarningText}>
-                  After-hours service (6 PM - 11 AM) is not available for tire changes without a spare tire.
-                </Text>
-              </View>
-            )}
-          </View>
-
           {serviceType === "roadside" && (
+            <View style={styles.section}>
+              <Text style={styles.label}>
+                Do you have a spare tire? <Text style={styles.required}>*</Text>
+              </Text>
+              <View style={styles.checkboxGroup}>
+                <TouchableOpacity
+                  style={[
+                    styles.checkboxOption,
+                    spareTireStatus === 'yes' && styles.checkboxOptionSelected,
+                  ]}
+                  onPress={() => setSpareTireStatus('yes')}
+                  activeOpacity={0.7}
+                >
+                  <View style={[
+                    styles.checkboxIcon,
+                    spareTireStatus === 'yes' && styles.checkboxIconSelected,
+                  ]}>
+                    {spareTireStatus === 'yes' && (
+                      <Check color={colors.white} size={20} strokeWidth={3} />
+                    )}
+                  </View>
+                  <Text style={[
+                    styles.checkboxText,
+                    spareTireStatus === 'yes' && styles.checkboxTextSelected,
+                  ]}>
+                    Yes, I have a spare tire
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.checkboxOption,
+                    spareTireStatus === 'no' && styles.checkboxOptionSelected,
+                  ]}
+                  onPress={() => setSpareTireStatus('no')}
+                  activeOpacity={0.7}
+                >
+                  <View style={[
+                    styles.checkboxIcon,
+                    spareTireStatus === 'no' && styles.checkboxIconSelected,
+                  ]}>
+                    {spareTireStatus === 'no' && (
+                      <X color={colors.white} size={20} strokeWidth={3} />
+                    )}
+                  </View>
+                  <Text style={[
+                    styles.checkboxText,
+                    spareTireStatus === 'no' && styles.checkboxTextSelected,
+                  ]}>
+                    No, I don&apos;t have a spare tire
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              {spareTireStatus === 'no' && (
+                <View style={styles.noSpareWarning}>
+                  <View style={styles.noSpareWarningHeader}>
+                    <AlertCircle color={colors.warning} size={18} />
+                    <Text style={styles.noSpareWarningTitle}>Important Notice</Text>
+                  </View>
+                  <Text style={styles.noSpareWarningText}>
+                    After-hours service (6 PM - 11 AM) is not available for tire changes without a spare tire.
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {(serviceType === "roadside" || serviceType === "charging") && (
             <View style={styles.section}>
               <View style={styles.servicesHeader}>
                 <Text style={styles.label}>
@@ -683,49 +692,59 @@ export default function RequestScreen() {
                   : "Standard pricing (11 AM - 6 PM)"}
               </Text>
               <View style={styles.servicesGrid}>
-                {roadsideServices.map((service) => {
-                  const price = calculateServicePrice(service, currentDateTime);
-                  const isSelected = selectedServices.has(service.id);
-                  return (
-                    <TouchableOpacity
-                      key={service.id}
-                      style={[
-                        styles.serviceCard,
-                        isSelected && styles.serviceCardSelected,
-                      ]}
-                      onPress={() => toggleService(service.id)}
-                      activeOpacity={0.7}
-                    >
-                      <View style={[
-                        styles.serviceCheckboxNew,
-                        isSelected && styles.serviceCheckboxSelected,
-                      ]}>
-                        {isSelected && (
-                          <Check color={colors.white} size={24} strokeWidth={3} />
-                        )}
-                      </View>
-                      <View style={styles.serviceInfo}>
-                        <Text style={[
-                          styles.serviceName,
-                          isSelected && styles.serviceNameSelected,
+                {roadsideServices
+                  .filter(service => {
+                    if (serviceType === "charging") {
+                      return service.id === "generator_charging";
+                    }
+                    return service.id !== "generator_charging";
+                  })
+                  .map((service) => {
+                    const price = calculateServicePrice(service, currentDateTime);
+                    const isSelected = selectedServices.has(service.id);
+                    const showBreakdown = service.travelFee > 0;
+                    return (
+                      <TouchableOpacity
+                        key={service.id}
+                        style={[
+                          styles.serviceCard,
+                          isSelected && styles.serviceCardSelected,
+                        ]}
+                        onPress={() => toggleService(service.id)}
+                        activeOpacity={0.7}
+                      >
+                        <View style={[
+                          styles.serviceCheckboxNew,
+                          isSelected && styles.serviceCheckboxSelected,
                         ]}>
-                          {service.name}
-                        </Text>
-                        <View style={styles.servicePricing}>
-                          <Text style={[
-                            styles.servicePrice,
-                            isSelected && styles.servicePriceSelected,
-                          ]}>
-                            ${price.toFixed(2)}
-                          </Text>
-                          <Text style={styles.servicePriceBreakdown}>
-                            (${isAfterHours(currentDateTime) ? service.afterHoursPrice.toFixed(2) : service.basePrice.toFixed(2)} + ${service.travelFee} travel)
-                          </Text>
+                          {isSelected && (
+                            <Check color={colors.white} size={24} strokeWidth={3} />
+                          )}
                         </View>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
+                        <View style={styles.serviceInfo}>
+                          <Text style={[
+                            styles.serviceName,
+                            isSelected && styles.serviceNameSelected,
+                          ]}>
+                            {service.name}
+                          </Text>
+                          <View style={styles.servicePricing}>
+                            <Text style={[
+                              styles.servicePrice,
+                              isSelected && styles.servicePriceSelected,
+                            ]}>
+                              ${price.toFixed(2)}
+                            </Text>
+                            {showBreakdown && (
+                              <Text style={styles.servicePriceBreakdown}>
+                                (${isAfterHours(currentDateTime) ? service.afterHoursPrice.toFixed(2) : service.basePrice.toFixed(2)} + ${service.travelFee} travel)
+                              </Text>
+                            )}
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
               </View>
               {selectedServices.size > 0 && (
                 <View style={styles.totalCard}>
