@@ -123,9 +123,14 @@ export default function AssignmentDetailScreen() {
   const handleSaveAssignment = async () => {
     if (!assignment) return;
 
+    const previouslyAssignedStaff = assignment.assignedStaff || [];
+    const newlyAddedStaff = selectedWorkerIds.filter(
+      staffId => !previouslyAssignedStaff.includes(staffId)
+    );
+
     await updateRequestAssignedStaff(assignment.id, selectedWorkerIds);
     
-    for (const staffId of selectedWorkerIds) {
+    for (const staffId of newlyAddedStaff) {
       const staff = availableStaff.find(s => s.id === staffId);
       if (staff) {
         await addNotification({
