@@ -1764,11 +1764,14 @@ export default function AdminScreen() {
                 const report = generateArchiveReport(filteredRequests);
                 
                 try {
-                  await Share.share({
-                    message: report,
-                    title: "Service Requests Archive Report",
-                  });
-                  if (Platform.OS !== "web") {
+                  if (Platform.OS === "web") {
+                    await Clipboard.setStringAsync(report);
+                    Alert.alert("Success", "Report copied to clipboard!");
+                  } else {
+                    await Share.share({
+                      message: report,
+                      title: "Service Requests Archive Report",
+                    });
                     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                   }
                 } catch (error) {
