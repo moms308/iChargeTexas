@@ -1,6 +1,6 @@
 import { useService } from "@/constants/serviceContext";
 import { useUser } from "@/constants/userContext";
-import { useAuth } from "@/constants/authContext";
+
 import { useMessenger } from "@/constants/messengerContext";
 import { SystemUser } from "@/constants/types";
 import colors from "@/constants/colors";
@@ -69,7 +69,10 @@ export default function AdminScreen() {
   const { addNotification, messages: staffMessages } = useMessenger();
   const queryClient = useQueryClient();
   const { logout } = useUser();
-  const { currentUser, logout: authLogout, hasPermission, allUsers = [] } = useAuth();
+  const currentUser: SystemUser | null = null;
+  const authLogout = async () => {};
+  const hasPermission = (permission: string) => false;
+  const allUsers: SystemUser[] = [];
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [adminTab, setAdminTab] = useState<AdminTab>("active");

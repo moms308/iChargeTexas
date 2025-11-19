@@ -1,4 +1,4 @@
-import { useAuth } from "@/constants/authContext";
+
 import { Linking } from "react-native";
 import colors from "@/constants/colors";
 import { SystemUser, UserRole } from "@/constants/types";
@@ -34,7 +34,26 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function UsersScreen() {
-  const { allUsers, createUser, deleteUser, getRoleDisplayName, isSuperAdmin, currentUser } = useAuth();
+  const allUsers: SystemUser[] = [];
+  const currentUser: SystemUser | null = null;
+  const isSuperAdmin = false;
+  
+  const createUser = async (userData: any) => {
+    return { success: false, message: 'User creation not implemented' };
+  };
+  
+  const deleteUser = async (userId: string) => {
+    return { success: false, message: 'User deletion not implemented' };
+  };
+  
+  const getRoleDisplayName = (role: UserRole) => {
+    switch (role) {
+      case 'super_admin': return 'Super Admin';
+      case 'admin': return 'Admin';
+      case 'worker': return 'Worker';
+      default: return 'User';
+    }
+  };
   const insets = useSafeAreaInsets();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
