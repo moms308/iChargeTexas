@@ -213,6 +213,9 @@ export default function AdminScreen() {
           onPress: async () => {
             try {
               console.log("[Admin] Deleting all active orders:", activeRequests.length);
+              console.log("[Admin] Active requests to delete:", activeRequests.map(r => ({ id: r.id, status: r.status })));
+              
+              const requestIds = activeRequests.map(r => r.id);
               
               for (const request of activeRequests) {
                 await updateRequestReason(
@@ -226,11 +229,14 @@ export default function AdminScreen() {
                   `Request canceled and deleted by Admin. Reason: Bulk deletion`,
                   "admin"
                 );
-                
-                updateRequestStatus(request.id, "canceled");
-                
-                deleteRequest(request.id);
               }
+              
+              const remainingRequests = requests.filter(r => !requestIds.includes(r.id));
+              console.log("[Admin] Remaining requests after deletion:", remainingRequests.map(r => ({ id: r.id, status: r.status })));
+              
+              const STORAGE_KEY = "@ev_service_requests";
+              await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(remainingRequests));
+              queryClient.setQueryData(["serviceRequests"], remainingRequests);
 
               if (Platform.OS !== "web") {
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
