@@ -1625,6 +1625,17 @@ export default function AdminScreen() {
     { key: "canceled", label: "Canceled", count: stats.canceled },
   ];
 
+  const staffUsers = allUsers.filter(u => u.role === 'admin' || u.role === 'super_admin' || u.role === 'worker');
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'super_admin': return '#FF6B35';
+      case 'admin': return colors.primary;
+      case 'worker': return colors.success;
+      default: return colors.textTertiary;
+    }
+  };
+
   return (
     <View style={styles.container}>
       <LinearGradient

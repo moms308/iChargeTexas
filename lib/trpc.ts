@@ -28,12 +28,9 @@ export const trpcClient = trpc.createClient({
         
         if (!response.ok) {
           const text = await response.text();
-          console.error("[tRPC Client] HTTP Error:", {
-            status: response.status,
-            statusText: response.statusText,
-            body: text,
-            url,
-          });
+          console.error(`[tRPC Client] HTTP Error ${response.status} ${response.statusText}`);
+          console.error(`[tRPC Client] URL: ${url}`);
+          console.error(`[tRPC Client] Body: ${text.substring(0, 1000)}`);
           
           const errorResponse = new Response(
             JSON.stringify({
