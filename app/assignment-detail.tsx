@@ -14,7 +14,6 @@ import {
 import { Stack, useRouter, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useService } from "@/constants/serviceContext";
-import { useAuth } from "@/constants/authContext";
 import { useMessenger } from "@/constants/messengerContext";
 import colors from "@/constants/colors";
 import { Message, SystemUser, ServiceRequest } from "@/constants/types";
@@ -34,7 +33,8 @@ export default function AssignmentDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { requests, addMessage, updateRequestAssignedStaff, updateRequestStatus } = useService();
-  const { currentUser, allUsers } = useAuth();
+  const currentUser = null;
+  const allUsers: any[] = [];
   const { addNotification } = useMessenger();
   
   const [messageText, setMessageText] = useState<string>("");

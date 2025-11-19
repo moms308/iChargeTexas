@@ -14,7 +14,6 @@ import { X, Camera, Image as ImageIcon, Trash2 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from './colors';
-import { useAuth } from './authContext';
 import { ServiceRequest } from './types';
 
 interface PhotoGalleryModalProps {
@@ -33,7 +32,7 @@ export default function PhotoGalleryModal({
   onRemovePhoto,
 }: PhotoGalleryModalProps) {
   const insets = useSafeAreaInsets();
-  const { currentUser } = useAuth();
+  const currentUser = null;
   const [isUploading, setIsUploading] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 

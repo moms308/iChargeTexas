@@ -11,7 +11,6 @@ import {
   Alert,
 } from "react-native";
 import { Image } from "expo-image";
-import { useAuth } from "@/constants/authContext";
 import { useMessenger } from "@/constants/messengerContext";
 import colors from "@/constants/colors";
 import { Send, MessageCircle, Bell, Shield, Wrench, Crown, Camera, Image as ImageIcon, X, ArrowLeft } from "lucide-react-native";
@@ -21,7 +20,9 @@ import { Stack, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 
 export default function MessengerScreen() {
-  const { currentUser, isAuthenticated, allUsers } = useAuth();
+  const currentUser = null;
+  const isAuthenticated = false;
+  const allUsers: any[] = [];
   const {
     messages,
     notifications,
@@ -41,13 +42,8 @@ export default function MessengerScreen() {
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
 
   const staffMembers = useMemo(() => {
-    return allUsers.filter(
-      (user) =>
-        user.role === "super_admin" ||
-        user.role === "admin" ||
-        user.role === "worker"
-    );
-  }, [allUsers]);
+    return [];
+  }, []);
 
   const filteredMentionSuggestions = useMemo(() => {
     if (!mentionSearchQuery) {

@@ -1,4 +1,4 @@
-import { useAuth } from "@/constants/authContext";
+
 import colors from "@/constants/colors";
 import { UserRole } from "@/constants/types";
 import { LinearGradient } from "expo-linear-gradient";
@@ -35,7 +35,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function UserDetailScreen() {
   const { id } = useLocalSearchParams();
-  const { allUsers, updateUser, deleteUser, getRoleDisplayName, currentUser } = useAuth();
+  const allUsers: any[] = [];
+  const updateUser = async () => ({ success: false, message: "Auth disabled" });
+  const deleteUser = async () => ({ success: false, message: "Auth disabled" });
+  const getRoleDisplayName = (role: any) => role;
+  const currentUser = null;
   const insets = useSafeAreaInsets();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

@@ -1,5 +1,4 @@
 import { useService } from "@/constants/serviceContext";
-import { useAuth } from "@/constants/authContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SystemUser } from "@/constants/types";
 import colors from "@/constants/colors";
@@ -62,7 +61,6 @@ export default function HistoryScreen() {
       console.error("Error loading system users:", error);
     }
   };
-  const { currentUser } = useAuth();
   const insets = useSafeAreaInsets();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [messagesModalVisible, setMessagesModalVisible] = useState<boolean>(false);

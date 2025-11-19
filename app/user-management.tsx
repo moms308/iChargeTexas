@@ -1,4 +1,4 @@
-import { useAuth } from "@/constants/authContext";
+
 import colors from "@/constants/colors";
 import { SystemUser, UserRole } from "@/constants/types";
 import { LinearGradient } from "expo-linear-gradient";
@@ -40,7 +40,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 type ModalType = "create" | "edit" | "view" | "permissions" | null;
 
 export default function UserManagementScreen() {
-  const { allUsers, currentUser, createUser, updateUser, getRoleDisplayName } = useAuth();
+  const allUsers: any[] = [];
+  const currentUser = null;
+  const createUser = async () => ({ success: false, message: "Auth disabled" });
+  const updateUser = async () => ({ success: false, message: "Auth disabled" });
+  const getRoleDisplayName = (role: any) => role;
   const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<ModalType>(null);
