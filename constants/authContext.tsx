@@ -13,7 +13,7 @@ export const [AuthContext, useAuth] = createContextHook(() => {
 
   const loadStoredUser = async () => {
     try {
-      const storedUser = await AsyncStorage.getItem("currentUser");
+      const storedUser = await AsyncStorage.getItem("@current_user");
       if (storedUser) {
         setUser(JSON.parse(storedUser));
       }
@@ -49,7 +49,7 @@ export const [AuthContext, useAuth] = createContextHook(() => {
 
     if (username === SUPER_ADMIN.username && password === SUPER_ADMIN.password) {
       const userToStore = { ...SUPER_ADMIN, lastLogin: new Date().toISOString() };
-      await AsyncStorage.setItem("currentUser", JSON.stringify(userToStore));
+      await AsyncStorage.setItem("@current_user", JSON.stringify(userToStore));
       setUser(userToStore);
       return true;
     }
@@ -58,7 +58,7 @@ export const [AuthContext, useAuth] = createContextHook(() => {
   }, []);
 
   const logout = useCallback(async () => {
-    await AsyncStorage.removeItem("currentUser");
+    await AsyncStorage.removeItem("@current_user");
     setUser(null);
   }, []);
 

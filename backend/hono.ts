@@ -62,7 +62,19 @@ app.use(
 );
 
 app.get("/", (c) => {
-  return c.json({ status: "ok", message: "API is running" });
+  return c.json({ 
+    status: "ok", 
+    message: "iCharge Texas API is running",
+    timestamp: new Date().toISOString(),
+    version: "1.0.0"
+  });
+});
+
+app.get("/api/health", (c) => {
+  return c.json({ 
+    status: "healthy", 
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.notFound((c) => {

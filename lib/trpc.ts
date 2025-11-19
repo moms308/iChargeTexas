@@ -2,6 +2,7 @@ import { createTRPCReact } from "@trpc/react-query";
 import { httpLink, loggerLink } from "@trpc/client";
 import type { AppRouter } from "@/backend/trpc/app-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import superjson from "superjson";
 
 export const trpc = createTRPCReact<AppRouter>();
 
@@ -23,6 +24,7 @@ export const trpcClient = trpc.createClient({
         (opts.direction === "down" && opts.result instanceof Error),
     }),
     httpLink({
+      transformer: superjson,
       url: `${getBaseUrl()}/api/trpc`,
       async headers() {
         const storedUser = await AsyncStorage.getItem("@current_user");
