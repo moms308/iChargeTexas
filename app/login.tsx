@@ -57,7 +57,7 @@ export default function LoginPage() {
           <View style={styles.headerContainer}>
             <TouchableOpacity 
               style={styles.backButton}
-              onPress={() => router.replace("/(tabs)")}
+              onPress={() => router.back()}
             >
               <ArrowLeft size={24} color={colors.primary} />
             </TouchableOpacity>
