@@ -13,7 +13,7 @@ import {
 import { useRouter } from "expo-router";
 import { useAuth } from "@/constants/authContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Lock, User } from "lucide-react-native";
+import { Lock, User, ArrowLeft } from "lucide-react-native";
 import colors from "@/constants/colors";
 
 export default function LoginPage() {
@@ -54,9 +54,17 @@ export default function LoginPage() {
         style={styles.keyboardView}
       >
         <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.title}>iCharge Texas</Text>
-            <Text style={styles.subtitle}>Employee Login</Text>
+          <View style={styles.headerContainer}>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <ArrowLeft size={24} color={colors.primary} />
+            </TouchableOpacity>
+            <View style={styles.header}>
+              <Text style={styles.title}>iCharge Texas</Text>
+              <Text style={styles.subtitle}>Employee Login</Text>
+            </View>
           </View>
 
           <View style={styles.form}>
@@ -118,9 +126,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 32,
   },
+  headerContainer: {
+    marginBottom: 48,
+  },
+  backButton: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    zIndex: 1,
+    padding: 8,
+  },
   header: {
     alignItems: "center",
-    marginBottom: 48,
   },
   title: {
     fontSize: 32,
