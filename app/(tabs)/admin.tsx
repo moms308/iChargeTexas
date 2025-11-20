@@ -102,7 +102,13 @@ export default function AdminScreen() {
   const [assignmentMessengerRequest, setAssignmentMessengerRequest] = useState<ServiceRequest | null>(null);
   const [assignmentMessageText, setAssignmentMessageText] = useState<string>("");
 
-  const { logout } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
+
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isAuthenticated, router]);
 
   const handleLogout = async () => {
     Alert.alert(
@@ -114,8 +120,14 @@ export default function AdminScreen() {
           text: "Logout",
           style: "destructive",
           onPress: async () => {
-            await logout();
-            router.replace("/login");
+            try {
+              await logout();
+              console.log('[Admin] User logged out successfully');
+              router.replace("/login");
+            } catch (error) {
+              console.error('[Admin] Logout error:', error);
+              Alert.alert("Error", "Failed to logout. Please try again.");
+            }
           },
         },
       ]
@@ -1614,6 +1626,10 @@ export default function AdminScreen() {
   ];
 
 
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
