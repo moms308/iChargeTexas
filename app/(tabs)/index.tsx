@@ -52,22 +52,40 @@ export default function HomeScreen() {
     (async () => {
       try {
         setIsLoadingLocation(true);
-        const { status } = await Location.requestForegroundPermissionsAsync();
         
-        if (status !== "granted") {
-          setLocationError("Location permission denied");
+        const servicesEnabled = await Location.hasServicesEnabledAsync();
+        if (!servicesEnabled) {
+          setLocationError("Location services are disabled. Please enable them in Settings.");
           setIsLoadingLocation(false);
           return;
         }
 
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        
+        if (status !== "granted") {
+          setLocationError("Location permission denied. Please enable in Settings.");
+          setIsLoadingLocation(false);
+          return;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         const currentLocation = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
+          timeInterval: 10000,
+          distanceInterval: 0,
         });
         setLocation(currentLocation);
         setLocationError(null);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error getting location:", error);
-        setLocationError("Unable to get location");
+        const errorMessage = error?.message || "Unable to get location";
+        
+        if (errorMessage.includes("kCLErrorDomain") || errorMessage.includes("location")) {
+          setLocationError("Cannot access location. Please check that Location Services are enabled in Settings > Privacy > Location Services.");
+        } else {
+          setLocationError("Unable to get location. Please try again.");
+        }
       } finally {
         setIsLoadingLocation(false);
       }
@@ -240,19 +258,36 @@ export default function HomeScreen() {
                   onPress={async () => {
                     setIsLoadingLocation(true);
                     try {
+                      const servicesEnabled = await Location.hasServicesEnabledAsync();
+                      if (!servicesEnabled) {
+                        setLocationError("Location services are disabled. Please enable them in Settings.");
+                        setIsLoadingLocation(false);
+                        return;
+                      }
+
                       const { status } = await Location.requestForegroundPermissionsAsync();
                       if (status === "granted") {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        
                         const currentLocation = await Location.getCurrentPositionAsync({
                           accuracy: Location.Accuracy.Balanced,
+                          timeInterval: 10000,
+                          distanceInterval: 0,
                         });
                         setLocation(currentLocation);
                         setLocationError(null);
                       } else {
-                        setLocationError("Location permission denied");
+                        setLocationError("Location permission denied. Please enable in Settings.");
                       }
-                    } catch (error) {
+                    } catch (error: any) {
                       console.error("Error getting location:", error);
-                      setLocationError("Unable to get location");
+                      const errorMessage = error?.message || "Unable to get location";
+                      
+                      if (errorMessage.includes("kCLErrorDomain") || errorMessage.includes("location")) {
+                        setLocationError("Cannot access location. Please check that Location Services are enabled in Settings > Privacy > Location Services.");
+                      } else {
+                        setLocationError("Unable to get location. Please try again.");
+                      }
                     } finally {
                       setIsLoadingLocation(false);
                     }

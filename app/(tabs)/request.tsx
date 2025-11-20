@@ -133,23 +133,68 @@ export default function RequestScreen() {
   const getLocation = async () => {
     try {
       setIsLoadingLocation(true);
-      const { status } = await Location.requestForegroundPermissionsAsync();
       
-      if (status !== "granted") {
+      const servicesEnabled = await Location.hasServicesEnabledAsync();
+      if (!servicesEnabled) {
+        Alert.alert(
+          "Location Services Disabled",
+          "Please enable Location Services in Settings to use this feature.",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Open Settings",
+              onPress: () => {
+                if (Platform.OS === 'ios') {
+                  Linking.openURL('app-settings:');
+                } else {
+                  Linking.openSettings();
+                }
+              },
+            },
+          ]
+        );
         setIsLoadingLocation(false);
         return;
       }
 
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Denied",
+          "Location permission is required to use this feature. Please enable it in Settings."
+        );
+        setIsLoadingLocation(false);
+        return;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const currentLocation = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
+        timeInterval: 10000,
+        distanceInterval: 0,
       });
       setLocation(currentLocation);
       
       if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting location:", error);
+      const errorMessage = error?.message || "Unable to get location";
+      
+      if (errorMessage.includes("kCLErrorDomain") || errorMessage.includes("location")) {
+        Alert.alert(
+          "Location Error",
+          "Cannot access location. Please check that Location Services are enabled in Settings > Privacy > Location Services."
+        );
+      } else {
+        Alert.alert(
+          "Location Error",
+          "Unable to get location. Please try again."
+        );
+      }
     } finally {
       setIsLoadingLocation(false);
     }
