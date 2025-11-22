@@ -77,8 +77,9 @@ export default function MessagesScreen() {
 
   const renderRequestCard = (request: ServiceRequest) => {
     const isSelected = selectedRequest?.id === request.id;
-    const hasMessages = request.messages && request.messages.length > 0;
-    const lastMessage = hasMessages ? request.messages[request.messages.length - 1] : null;
+    const messages = request.messages || [];
+    const hasMessages = messages.length > 0;
+    const lastMessage = hasMessages ? messages[messages.length - 1] : null;
 
     return (
       <TouchableOpacity
@@ -120,7 +121,7 @@ export default function MessagesScreen() {
           </View>
           {hasMessages && (
             <View style={styles.messageBadge}>
-              <Text style={styles.messageBadgeText}>{request.messages.length}</Text>
+              <Text style={styles.messageBadgeText}>{messages.length}</Text>
             </View>
           )}
         </View>
