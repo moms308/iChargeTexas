@@ -3,7 +3,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ServiceRequest, Message, AppError, ArchivedRequest } from "./types";
-import * as Notifications from "expo-notifications";
 import { Platform, Alert } from "react-native";
 import { roadsideServices, calculateServicePrice, isAfterHours } from "./serviceData";
 
@@ -13,13 +12,7 @@ const NOTIFICATION_PERMISSION_KEY = "@notification_permission_shown";
 const ERROR_STORAGE_KEY = "@app_errors";
 const LAST_ERROR_RESET_KEY = "@last_error_reset";
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+
 
 export const [ServiceContext, useService] = createContextHook(() => {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
@@ -425,50 +418,7 @@ export const [ServiceContext, useService] = createContextHook(() => {
       archiveRequest(updatedRequest);
     }
 
-    if (updatedRequest && note) {
-      try {
-        if (Platform.OS !== 'web') {
-          const { status: existingStatus } = await Notifications.getPermissionsAsync();
-          let finalStatus = existingStatus;
-          
-          if (existingStatus !== 'granted') {
-            const { status } = await Notifications.requestPermissionsAsync();
-            finalStatus = status;
-          }
-          
-          if (finalStatus === 'granted') {
-            await Notifications.scheduleNotificationAsync({
-              content: {
-                title: `📝 Update: ${updatedRequest.title}`,
-                body: note,
-                data: { 
-                  requestId: id, 
-                  type: updatedRequest.type,
-                  category: 'admin_note',
-                },
-                sound: true,
-                badge: 1,
-              },
-              trigger: null,
-            });
-            
-            await Notifications.scheduleNotificationAsync({
-              content: {
-                title: `✅ Note Sent`,
-                body: `User notified about: ${updatedRequest.title}`,
-                data: { 
-                  requestId: id, 
-                  type: 'admin_confirmation',
-                },
-              },
-              trigger: { seconds: 1 },
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Error sending notification:', error);
-      }
-    }
+
   }, [requests, saveMutate, archiveRequest]);
 
   const deleteRequest = useCallback((id: string) => {
@@ -525,62 +475,7 @@ export const [ServiceContext, useService] = createContextHook(() => {
       archiveRequest(updatedRequest);
     }
 
-    if (updatedRequest && staffIds.length > 0) {
-      try {
-        const storedUsers = await AsyncStorage.getItem("@system_users");
-        if (storedUsers && storedUsers !== 'null' && storedUsers !== 'undefined' && typeof storedUsers === 'string') {
-          let users;
-          try {
-            users = JSON.parse(storedUsers);
-          } catch (parseError) {
-            console.error('[ServiceContext] Error parsing users for staff assignment:', parseError, 'Raw data:', storedUsers.substring(0, 100));
-            return;
-          }
-          
-          if (!Array.isArray(users)) {
-            console.error('[ServiceContext] Users data is not an array:', typeof users);
-            return;
-          }
-          
-          const assignedNames = staffIds
-            .map(staffId => {
-              const user = users.find((u: any) => u.id === staffId);
-              return user?.fullName;
-            })
-            .filter(Boolean)
-            .join(", ");
 
-          if (assignedNames && Platform.OS !== 'web') {
-            const { status: existingStatus } = await Notifications.getPermissionsAsync();
-            let finalStatus = existingStatus;
-            
-            if (existingStatus !== 'granted') {
-              const { status } = await Notifications.requestPermissionsAsync();
-              finalStatus = status;
-            }
-            
-            if (finalStatus === 'granted') {
-              await Notifications.scheduleNotificationAsync({
-                content: {
-                  title: `👥 Staff Assigned: ${updatedRequest.title}`,
-                  body: `Your service has been assigned to: ${assignedNames}`,
-                  data: { 
-                    requestId: id, 
-                    type: updatedRequest.type,
-                    category: 'staff_assignment',
-                  },
-                  sound: true,
-                  badge: 1,
-                },
-                trigger: null,
-              });
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error sending staff assignment notification:', error);
-      }
-    }
   }, [requests, saveMutate, archiveRequest]);
 
   const addPhoto = useCallback(async (
@@ -653,75 +548,7 @@ export const [ServiceContext, useService] = createContextHook(() => {
       archiveRequest(updatedRequest);
     }
 
-    if (updatedRequest && messageText) {
-      try {
-        if (Platform.OS !== 'web') {
-          const { status: existingStatus } = await Notifications.getPermissionsAsync();
-          let finalStatus = existingStatus;
-          
-          const isFirstMessage = !updatedRequest.messages || updatedRequest.messages.length === 0;
-          
-          if (!hasShownNotificationPrompt && isFirstMessage && existingStatus !== 'granted') {
-            Alert.alert(
-              '🔔 Enable Notifications',
-              'Enable push notifications to receive real-time messages for this service request.',
-              [
-                {
-                  text: 'Not Now',
-                  style: 'cancel',
-                  onPress: () => {
-                    markNotificationPromptShown();
-                  }
-                },
-                {
-                  text: 'Enable',
-                  onPress: async () => {
-                    const { status } = await Notifications.requestPermissionsAsync();
-                    finalStatus = status;
-                    markNotificationPromptShown();
-                    
-                    if (status === 'granted') {
-                      Alert.alert(
-                        '✅ Notifications Enabled',
-                        'You will now receive real-time message notifications.'
-                      );
-                    }
-                  }
-                }
-              ]
-            );
-          } else if (existingStatus !== 'granted') {
-            const { status } = await Notifications.requestPermissionsAsync();
-            finalStatus = status;
-          }
-          
-          if (finalStatus === 'granted') {
-            const title = sender === 'admin' 
-              ? `💬 Admin: ${updatedRequest.title}`
-              : `📩 User: ${updatedRequest.title}`;
-            const body = messageText;
-            
-            await Notifications.scheduleNotificationAsync({
-              content: {
-                title,
-                body,
-                data: { 
-                  requestId, 
-                  type: updatedRequest.type,
-                  category: 'message',
-                  sender,
-                },
-                sound: true,
-                badge: 1,
-              },
-              trigger: null,
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Error sending notification:', error);
-      }
-    }
+
   }, [requests, saveMutate, hasShownNotificationPrompt, archiveRequest]);
 
   const createTestInvoice = useCallback(() => {

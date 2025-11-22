@@ -2,7 +2,6 @@ import createContextHook from "@nkzw/create-context-hook";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StaffMessage, StaffNotification } from "./types";
-import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
 const MESSAGES_STORAGE_KEY = "@staff_messages";
@@ -123,30 +122,7 @@ export const [MessengerContext, useMessenger] = createContextHook(() => {
         return updated;
       });
 
-      if (Platform.OS !== "web" && mentionedUserIds.length > 0) {
-        try {
-          const { status } = await Notifications.getPermissionsAsync();
-          if (status === "granted") {
-            await Notifications.scheduleNotificationAsync({
-              content: {
-                title: isEveryoneMentioned
-                  ? `💼 ${senderName} mentioned @everyone`
-                  : `💼 ${senderName} mentioned you`,
-                body: text,
-                data: {
-                  type: "staff_message",
-                  messageId: newMessage.id,
-                  mentions: mentionedUserIds,
-                },
-                sound: true,
-              },
-              trigger: null,
-            });
-          }
-        } catch (error) {
-          console.error("[Messenger] Error sending notification:", error);
-        }
-      }
+
 
       return newMessage;
     },
@@ -184,29 +160,7 @@ export const [MessengerContext, useMessenger] = createContextHook(() => {
         return updated;
       });
 
-      if (Platform.OS !== "web") {
-        try {
-          const { status } = await Notifications.getPermissionsAsync();
-          if (status === "granted") {
-            await Notifications.scheduleNotificationAsync({
-              content: {
-                title: notification.title,
-                body: notification.message,
-                data: {
-                  type: notification.type,
-                  notificationId: newNotification.id,
-                  relatedId: notification.relatedId,
-                },
-                sound: true,
-                badge: 1,
-              },
-              trigger: null,
-            });
-          }
-        } catch (error) {
-          console.error("[Messenger] Error sending notification:", error);
-        }
-      }
+
 
       return newNotification;
     },

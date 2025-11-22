@@ -25,7 +25,7 @@ import {
   KeyboardAvoidingView,
   Modal,
 } from "react-native";
-import * as Notifications from "expo-notifications";
+
 import * as Haptics from "expo-haptics";
 
 export default function MessagesScreen() {
@@ -47,17 +47,11 @@ export default function MessagesScreen() {
   }, []);
 
   const checkNotificationPermissions = async () => {
-    if (Platform.OS !== 'web') {
-      const { status } = await Notifications.getPermissionsAsync();
-      setHasNotificationPermission(status === 'granted');
-    }
+    setHasNotificationPermission(false);
   };
 
   const requestNotificationPermissions = async () => {
-    if (Platform.OS !== 'web') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      setHasNotificationPermission(status === 'granted');
-    }
+    setHasNotificationPermission(false);
   };
 
   const onRefresh = async () => {

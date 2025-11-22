@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ServiceContext } from "@/constants/serviceContext";
 import { UserContext } from "@/constants/userContext";
@@ -9,8 +9,7 @@ import { LanguageContext } from "@/constants/languageContext";
 import { MessengerContext } from "@/constants/messengerContext";
 import { AuthContext } from "@/constants/authContext";
 import { StatusBar } from "expo-status-bar";
-import * as Notifications from "expo-notifications";
-import { Platform, LogBox } from "react-native";
+import { LogBox } from "react-native";
 import { trpc, trpcClient } from "@/lib/trpc";
 
 SplashScreen.preventAutoHideAsync();
@@ -22,29 +21,6 @@ LogBox.ignoreLogs([
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
-  const router = useRouter();
-
-  useEffect(() => {
-    if (Platform.OS !== 'web') {
-      const subscription = Notifications.addNotificationResponseReceivedListener(response => {
-        const data = response.notification.request.content.data;
-        console.log('Notification tapped with data:', data);
-        
-        if (data?.category === 'message' || data?.category === 'admin_note') {
-          if (data.requestId) {
-            setTimeout(() => {
-              router.push('/(tabs)/notes');
-            }, 100);
-          }
-        }
-      });
-
-      return () => {
-        subscription.remove();
-      };
-    }
-  }, [router]);
-
   return (
     <>
       <StatusBar style="light" />
@@ -72,22 +48,8 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
-  const notificationListener = useRef<Notifications.Subscription | undefined>(undefined);
-
   useEffect(() => {
     SplashScreen.hideAsync();
-
-    if (Platform.OS !== 'web') {
-      notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-        console.log('Notification received:', notification);
-      });
-
-      return () => {
-        if (notificationListener.current) {
-          notificationListener.current.remove();
-        }
-      };
-    }
   }, []);
 
   return (
