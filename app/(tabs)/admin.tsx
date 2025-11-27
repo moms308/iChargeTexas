@@ -111,7 +111,9 @@ export default function AdminScreen() {
     basePrice: string;
     afterHoursPrice: string;
     travelFee: string;
-  }>({ basePrice: '', afterHoursPrice: '', travelFee: '' });
+    stateTax: string;
+    federalTax: string;
+  }>({ basePrice: '', afterHoursPrice: '', travelFee: '', stateTax: '', federalTax: '' });
 
   const { logout, isAuthenticated } = useAuth();
   const { theme } = useTheme();
@@ -2915,6 +2917,8 @@ export default function AdminScreen() {
                               basePrice: service.basePrice.toFixed(2),
                               afterHoursPrice: service.afterHoursPrice.toFixed(2),
                               travelFee: service.travelFee.toFixed(2),
+                              stateTax: '8.25',
+                              federalTax: '0.00',
                             });
                           }
                         }}
@@ -2925,26 +2929,27 @@ export default function AdminScreen() {
                       </TouchableOpacity>
                     </View>
 
-                    {!isEditing ? (
-                      <View style={styles.servicePriceDisplay}>
-                        <View style={styles.priceDisplayItem}>
-                          <Text style={styles.priceDisplayLabel}>Regular Price</Text>
-                          <Text style={styles.priceDisplayValue}>${service.basePrice.toFixed(2)}</Text>
-                        </View>
-                        <View style={styles.priceDisplayItem}>
-                          <Text style={styles.priceDisplayLabel}>After Hours</Text>
-                          <Text style={styles.priceDisplayValue}>${service.afterHoursPrice.toFixed(2)}</Text>
-                        </View>
-                        <View style={styles.priceDisplayItem}>
-                          <Text style={styles.priceDisplayLabel}>Trip Charge</Text>
-                          <Text style={styles.priceDisplayValue}>${service.travelFee.toFixed(2)}</Text>
-                        </View>
+                    <View style={styles.servicePriceDisplay}>
+                      <View style={styles.priceDisplayItem}>
+                        <Text style={styles.priceDisplayLabel}>Regular Price</Text>
+                        <Text style={styles.priceDisplayValue}>${service.basePrice.toFixed(2)}</Text>
                       </View>
-                    ) : (
+                      <View style={styles.priceDisplayItem}>
+                        <Text style={styles.priceDisplayLabel}>After Hours</Text>
+                        <Text style={styles.priceDisplayValue}>${service.afterHoursPrice.toFixed(2)}</Text>
+                      </View>
+                      <View style={styles.priceDisplayItem}>
+                        <Text style={styles.priceDisplayLabel}>Trip Charge</Text>
+                        <Text style={styles.priceDisplayValue}>${service.travelFee.toFixed(2)}</Text>
+                      </View>
+                    </View>
+
+                    {isEditing && (
                       <View style={styles.servicePriceEdit}>
-                        <View style={styles.priceEditRow}>
+                        <Text style={styles.editSectionTitle}>Edit Prices</Text>
+                        <View style={styles.priceEditGrid}>
                           <View style={styles.priceInputContainer}>
-                            <Text style={styles.priceInputLabel}>Regular Price</Text>
+                            <Text style={styles.priceInputLabel}>Price</Text>
                             <View style={styles.priceInputWrapper}>
                               <Text style={styles.priceInputPrefix}>$</Text>
                               <TextInput
@@ -2962,20 +2967,38 @@ export default function AdminScreen() {
                           </View>
 
                           <View style={styles.priceInputContainer}>
-                            <Text style={styles.priceInputLabel}>After Hours</Text>
+                            <Text style={styles.priceInputLabel}>State Tax (%)</Text>
                             <View style={styles.priceInputWrapper}>
-                              <Text style={styles.priceInputPrefix}>$</Text>
                               <TextInput
                                 style={styles.priceInput}
-                                value={editedPrices.afterHoursPrice}
+                                value={editedPrices.stateTax}
                                 onChangeText={(text) => {
                                   const cleaned = text.replace(/[^0-9.]/g, '');
-                                  setEditedPrices({ ...editedPrices, afterHoursPrice: cleaned });
+                                  setEditedPrices({ ...editedPrices, stateTax: cleaned });
                                 }}
                                 keyboardType="decimal-pad"
                                 placeholder="0.00"
                                 placeholderTextColor={colors.textTertiary}
                               />
+                              <Text style={styles.priceInputSuffix}>%</Text>
+                            </View>
+                          </View>
+
+                          <View style={styles.priceInputContainer}>
+                            <Text style={styles.priceInputLabel}>Federal Tax (%)</Text>
+                            <View style={styles.priceInputWrapper}>
+                              <TextInput
+                                style={styles.priceInput}
+                                value={editedPrices.federalTax}
+                                onChangeText={(text) => {
+                                  const cleaned = text.replace(/[^0-9.]/g, '');
+                                  setEditedPrices({ ...editedPrices, federalTax: cleaned });
+                                }}
+                                keyboardType="decimal-pad"
+                                placeholder="0.00"
+                                placeholderTextColor={colors.textTertiary}
+                              />
+                              <Text style={styles.priceInputSuffix}>%</Text>
                             </View>
                           </View>
 
@@ -3001,11 +3024,20 @@ export default function AdminScreen() {
                         <TouchableOpacity
                           style={styles.savePriceButton}
                           onPress={() => {
+                            const basePrice = parseFloat(editedPrices.basePrice || '0');
+                            const stateTax = parseFloat(editedPrices.stateTax || '0');
+                            const federalTax = parseFloat(editedPrices.federalTax || '0');
+                            const totalTax = stateTax + federalTax;
+                            const totalWithTax = basePrice + (basePrice * (totalTax / 100));
+
                             Alert.alert(
                               '⚠️ Price Update',
                               `This will update the prices for "${service.name}":\n\n` +
-                              `Regular: ${parseFloat(editedPrices.basePrice || '0').toFixed(2)}\n` +
-                              `After Hours: ${parseFloat(editedPrices.afterHoursPrice || '0').toFixed(2)}\n` +
+                              `Price: ${basePrice.toFixed(2)}\n` +
+                              `State Tax: ${stateTax.toFixed(2)}%\n` +
+                              `Federal Tax: ${federalTax.toFixed(2)}%\n` +
+                              `Total Tax: ${totalTax.toFixed(2)}%\n` +
+                              `Price with Tax: ${totalWithTax.toFixed(2)}\n` +
                               `Trip Charge: ${parseFloat(editedPrices.travelFee || '0').toFixed(2)}\n\n` +
                               `Note: This is a preview. Actual price updates require backend integration.`,
                               [
@@ -5058,13 +5090,30 @@ const styles = StyleSheet.create({
   },
   servicePriceEdit: {
     gap: 16,
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 2,
+    borderTopColor: colors.primary + "30",
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    padding: 16,
   },
-  priceEditRow: {
+  editSectionTitle: {
+    fontSize: 14,
+    fontWeight: "700" as const,
+    color: colors.primary,
+    textTransform: "uppercase" as const,
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  priceEditGrid: {
     flexDirection: "row" as const,
+    flexWrap: "wrap" as const,
     gap: 12,
   },
   priceInputContainer: {
-    flex: 1,
+    width: "48%",
+    minWidth: 140,
   },
   priceInputLabel: {
     fontSize: 11,
@@ -5089,6 +5138,12 @@ const styles = StyleSheet.create({
     fontWeight: "700" as const,
     color: colors.primary,
     marginRight: 4,
+  },
+  priceInputSuffix: {
+    fontSize: 18,
+    fontWeight: "700" as const,
+    color: colors.primary,
+    marginLeft: 4,
   },
   priceInput: {
     flex: 1,
