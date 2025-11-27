@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "ichargetexas",
-    "slug": "ichargetexas",
+    "name": "MotoGo",
+    "slug": "motogo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
