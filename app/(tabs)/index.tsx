@@ -1,7 +1,7 @@
 import { useService } from "@/constants/serviceContext";
 import { useLanguage } from "@/constants/languageContext";
 import { translations } from "@/constants/translations";
-import colors from "@/constants/colors";
+import { useTheme } from "@/constants/themeContext";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/constants/authContext";
 import * as Location from "expo-location";
@@ -37,6 +37,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { requests } = useService();
   const { isAuthenticated, user } = useAuth();
+  const { colors } = useTheme();
 
   const { language, changeLanguage } = useLanguage();
   const t = translations[language] || translations.en;
@@ -126,8 +127,8 @@ export default function HomeScreen() {
 
 
   return (
-    <View style={styles.container}>
-      <View style={styles.camoBackground}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.camoBackground, { backgroundColor: colors.background }]}>
         <ImageBackground
           source={{ uri: "https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/qk0o9iz3d1u2fd4x94ud3" }}
           style={styles.robotBackground}
@@ -143,14 +144,16 @@ export default function HomeScreen() {
             <TouchableOpacity
               style={[
                 styles.languageButton,
-                language === "en" && styles.languageButtonActive,
+                { borderColor: colors.border },
+                language === "en" && [styles.languageButtonActive, { backgroundColor: colors.primary, borderColor: colors.primary }],
               ]}
               onPress={() => changeLanguage("en")}
             >
               <Text
                 style={[
                   styles.languageButtonText,
-                  language === "en" && styles.languageButtonTextActive,
+                  { color: colors.textSecondary },
+                  language === "en" && [styles.languageButtonTextActive, { color: colors.white }],
                 ]}
               >
                 English
@@ -159,14 +162,16 @@ export default function HomeScreen() {
             <TouchableOpacity
               style={[
                 styles.languageButton,
-                language === "es" && styles.languageButtonActive,
+                { borderColor: colors.border },
+                language === "es" && [styles.languageButtonActive, { backgroundColor: colors.primary, borderColor: colors.primary }],
               ]}
               onPress={() => changeLanguage("es")}
             >
               <Text
                 style={[
                   styles.languageButtonText,
-                  language === "es" && styles.languageButtonTextActive,
+                  { color: colors.textSecondary },
+                  language === "es" && [styles.languageButtonTextActive, { color: colors.white }],
                 ]}
               >
                 Spanish
@@ -176,20 +181,20 @@ export default function HomeScreen() {
 
           <View style={styles.header}>
             <View>
-              <Text style={styles.greeting}>{t.appTitle}</Text>
-              <Text style={styles.subtitle}>{t.subtitle}</Text>
+              <Text style={[styles.greeting, { color: colors.text }]}>{t.appTitle}</Text>
+              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t.subtitle}</Text>
             </View>
           </View>
 
           {pendingRequests.length > 0 && (
-            <View style={styles.queueCounter}>
+            <View style={[styles.queueCounter, { borderColor: colors.primary }]}>
               <View style={styles.queueCounterContent}>
-                <View style={styles.queueBadge}>
-                  <Text style={styles.queueNumber}>{pendingRequests.length}</Text>
+                <View style={[styles.queueBadge, { backgroundColor: colors.primary }]}>
+                  <Text style={[styles.queueNumber, { color: colors.white }]}>{pendingRequests.length}</Text>
                 </View>
                 <View style={styles.queueInfo}>
-                  <Text style={styles.queueTitle}>{t.serviceQueue}</Text>
-                  <Text style={styles.queueSubtitle}>
+                  <Text style={[styles.queueTitle, { color: colors.text }]}>{t.serviceQueue}</Text>
+                  <Text style={[styles.queueSubtitle, { color: colors.textSecondary }]}>
                     {pendingRequests.length === 1 ? `1 ${t.requestInQueue}` : `${pendingRequests.length} ${t.requestsInQueue}`}
                   </Text>
                 </View>
@@ -200,29 +205,29 @@ export default function HomeScreen() {
           <View style={styles.locationCard}>
             <View style={styles.locationHeader}>
               <MapPin color={colors.primary} size={20} />
-              <Text style={styles.locationTitle}>{t.currentLocation}</Text>
+              <Text style={[styles.locationTitle, { color: colors.text }]}>{t.currentLocation}</Text>
             </View>
             
             {isLoadingLocation && (
               <View style={styles.locationLoading}>
                 <ActivityIndicator color={colors.primary} size="small" />
-                <Text style={styles.locationLoadingText}>
+                <Text style={[styles.locationLoadingText, { color: colors.textSecondary }]}>
                   {t.gettingLocation}
                 </Text>
               </View>
             )}
 
             {locationError && !isLoadingLocation && (
-              <View style={styles.locationErrorContainer}>
+              <View style={[styles.locationErrorContainer, { backgroundColor: colors.error + "15", borderColor: colors.error }]}>
                 <View style={styles.locationErrorHeader}>
                   <AlertCircle color={colors.error} size={20} />
-                  <Text style={styles.locationErrorTitle}>{t.locationRequired}</Text>
+                  <Text style={[styles.locationErrorTitle, { color: colors.error }]}>{t.locationRequired}</Text>
                 </View>
-                <Text style={styles.locationErrorText}>
+                <Text style={[styles.locationErrorText, { color: colors.text }]}>
                   {t.locationRequiredDesc}
                 </Text>
                 <TouchableOpacity
-                  style={styles.enableLocationButton}
+                  style={[styles.enableLocationButton, { backgroundColor: colors.error }]}
                   onPress={async () => {
                     if (Platform.OS === 'web') {
                       Alert.alert(
@@ -251,7 +256,7 @@ export default function HomeScreen() {
                   }}
                 >
                   <Settings color={colors.white} size={16} />
-                  <Text style={styles.enableLocationButtonText}>{t.enableLocation}</Text>
+                  <Text style={[styles.enableLocationButtonText, { color: colors.white }]}>{t.enableLocation}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.retryButton}
@@ -293,17 +298,17 @@ export default function HomeScreen() {
                     }
                   }}
                 >
-                  <Text style={styles.retryButtonText}>{t.tryAgain}</Text>
+                  <Text style={[styles.retryButtonText, { color: colors.error }]}>{t.tryAgain}</Text>
                 </TouchableOpacity>
               </View>
             )}
 
             {location && !isLoadingLocation && (
               <View style={styles.locationInfo}>
-                <View style={styles.addressInputContainer}>
-                  <Text style={styles.addressLabel}>Service Address</Text>
+                <View style={[styles.addressInputContainer, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                  <Text style={[styles.addressLabel, { color: colors.textSecondary }]}>Service Address</Text>
                   <TextInput
-                    style={styles.addressInput}
+                    style={[styles.addressInput, { color: colors.text, backgroundColor: colors.surface, borderColor: colors.border }]}
                     value={address}
                     onChangeText={setAddress}
                     placeholder="Enter service address (optional)"
@@ -311,22 +316,22 @@ export default function HomeScreen() {
                     multiline
                   />
                 </View>
-                <View style={styles.coordinatesBox}>
-                  <Text style={styles.coordinatesTitle}>GPS Coordinates</Text>
+                <View style={[styles.coordinatesBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                  <Text style={[styles.coordinatesTitle, { color: colors.textSecondary }]}>GPS Coordinates</Text>
                   <View style={styles.coordinateRow}>
-                    <Text style={styles.coordinateLabel}>{t.latitude}</Text>
-                    <Text style={styles.coordinateValue}>
+                    <Text style={[styles.coordinateLabel, { color: colors.textSecondary }]}>{t.latitude}</Text>
+                    <Text style={[styles.coordinateValue, { color: colors.text }]}>
                       {location.coords.latitude.toFixed(6)}°
                     </Text>
                   </View>
                   <View style={styles.coordinateRow}>
-                    <Text style={styles.coordinateLabel}>{t.longitude}</Text>
-                    <Text style={styles.coordinateValue}>
+                    <Text style={[styles.coordinateLabel, { color: colors.textSecondary }]}>{t.longitude}</Text>
+                    <Text style={[styles.coordinateValue, { color: colors.text }]}>
                       {location.coords.longitude.toFixed(6)}°
                     </Text>
                   </View>
                   {location.coords.accuracy && (
-                    <Text style={styles.accuracyText}>
+                    <Text style={[styles.accuracyText, { color: colors.textTertiary }]}>
                       {t.accuracy} ±{Math.round(location.coords.accuracy)}m
                     </Text>
                   )}
@@ -334,17 +339,17 @@ export default function HomeScreen() {
                 
                 <View style={styles.locationActions}>
                   <TouchableOpacity
-                    style={styles.copyButton}
+                    style={[styles.copyButton, { backgroundColor: colors.background, borderColor: colors.primary }]}
                     onPress={copyCoordinates}
                   >
                     <Copy color={colors.primary} size={16} />
-                    <Text style={styles.copyButtonText}>
+                    <Text style={[styles.copyButtonText, { color: colors.primary }]}>
                       {copied ? t.copied : t.copy}
                     </Text>
                   </TouchableOpacity>
                   
                   <TouchableOpacity
-                    style={styles.useLocationButton}
+                    style={[styles.useLocationButton, { backgroundColor: colors.primary }]}
                     onPress={useThisLocation}
                   >
                     <Image
@@ -352,7 +357,7 @@ export default function HomeScreen() {
                       style={styles.mascotSmallIcon}
                       resizeMode="contain"
                     />
-                    <Text style={styles.useLocationButtonText}>
+                    <Text style={[styles.useLocationButtonText, { color: colors.white }]}>
                       {t.isServiceAtLocation}
                     </Text>
                     <ArrowRight color={colors.white} size={16} />
@@ -363,7 +368,7 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.servicesSection}>
-            <Text style={styles.sectionTitle}>{t.services}</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.services}</Text>
             <View style={styles.serviceCards}>
               <TouchableOpacity
                 style={[styles.serviceCard, { backgroundColor: colors.roadside }]}
@@ -378,8 +383,8 @@ export default function HomeScreen() {
                   <View style={styles.serviceIconContainer}>
                     <Truck color={colors.white} size={32} />
                   </View>
-                  <Text style={styles.serviceTitle}>{t.roadsideAssistance}</Text>
-                  <Text style={styles.serviceDescription}>
+                  <Text style={[styles.serviceTitle, { color: colors.white }]}>{t.roadsideAssistance}</Text>
+                  <Text style={[styles.serviceDescription, { color: colors.white }]}>
                     {t.roadsideDesc}
                   </Text>
                 </View>
@@ -403,8 +408,8 @@ export default function HomeScreen() {
                   <View style={styles.serviceIconContainer}>
                     <Zap color={colors.white} size={36} />
                   </View>
-                  <Text style={styles.serviceTitle}>{t.scheduledCharging}</Text>
-                  <Text style={styles.serviceDescription}>
+                  <Text style={[styles.serviceTitle, { color: colors.white }]}>{t.scheduledCharging}</Text>
+                  <Text style={[styles.serviceDescription, { color: colors.white }]}>
                     {t.scheduledChargingDesc}
                   </Text>
                 </View>
@@ -421,20 +426,20 @@ export default function HomeScreen() {
             <View style={styles.activeSection}>
               <View style={styles.activeSectionHeader}>
                 <Navigation color={colors.primary} size={20} />
-                <Text style={styles.sectionTitle}>{t.activeRequests}</Text>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.activeRequests}</Text>
               </View>
-              <View style={styles.activeCard}>
-                <Text style={styles.activeCount}>{pendingRequests.length}</Text>
-                <Text style={styles.activeLabel}>
+              <View style={[styles.activeCard, { borderColor: colors.primary }]}>
+                <Text style={[styles.activeCount, { color: colors.primary }]}>{pendingRequests.length}</Text>
+                <Text style={[styles.activeLabel, { color: colors.textSecondary }]}>
                   {pendingRequests.length === 1
                     ? t.requestPending
                     : t.requestsPending}
                 </Text>
                 <TouchableOpacity
-                  style={styles.viewButton}
+                  style={[styles.viewButton, { backgroundColor: colors.primary }]}
                   onPress={() => router.push("/(tabs)/history")}
                 >
-                  <Text style={styles.viewButtonText}>{t.viewAll}</Text>
+                  <Text style={[styles.viewButtonText, { color: colors.white }]}>{t.viewAll}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -443,18 +448,18 @@ export default function HomeScreen() {
 
           {!isAuthenticated && (
             <TouchableOpacity
-              style={styles.employeeLoginButton}
+              style={[styles.employeeLoginButton, { borderColor: colors.border }]}
               onPress={() => router.push("/login")}
             >
-              <Text style={styles.employeeLoginText}>Employee Login</Text>
+              <Text style={[styles.employeeLoginText, { color: colors.textSecondary }]}>Employee Login</Text>
             </TouchableOpacity>
           )}
 
           {isAuthenticated && user && (
-            <View style={styles.employeeInfoCard}>
-              <Text style={styles.employeeInfoTitle}>Logged in as:</Text>
-              <Text style={styles.employeeInfoName}>{user.fullName}</Text>
-              <Text style={styles.employeeInfoRole}>{user.role.replace('_', ' ').toUpperCase()}</Text>
+            <View style={[styles.employeeInfoCard, { borderColor: colors.primary }]}>
+              <Text style={[styles.employeeInfoTitle, { color: colors.textSecondary }]}>Logged in as:</Text>
+              <Text style={[styles.employeeInfoName, { color: colors.text }]}>{user.fullName}</Text>
+              <Text style={[styles.employeeInfoRole, { color: colors.primary }]}>{user.role.replace('_', ' ').toUpperCase()}</Text>
             </View>
           )}
 
@@ -468,11 +473,9 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   camoBackground: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   robotBackground: {
     flex: 1,
@@ -500,21 +503,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: "rgba(26, 26, 26, 0.95)",
     borderWidth: 2,
-    borderColor: colors.border,
     alignItems: "center" as const,
     justifyContent: "center" as const,
   },
   languageButtonActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
   },
   languageButtonText: {
     fontSize: 16,
     fontWeight: "600" as const,
-    color: colors.textSecondary,
   },
   languageButtonTextActive: {
-    color: colors.white,
   },
   header: {
     flexDirection: "row",
@@ -526,12 +524,10 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 32,
     fontWeight: "700" as const,
-    color: colors.text,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: colors.textSecondary,
   },
   locationCard: {
     backgroundColor: "rgba(26, 26, 26, 0.95)",
@@ -550,7 +546,6 @@ const styles = StyleSheet.create({
   locationTitle: {
     fontSize: 18,
     fontWeight: "600" as const,
-    color: colors.text,
   },
   locationLoading: {
     flexDirection: "row",
@@ -560,14 +555,11 @@ const styles = StyleSheet.create({
   },
   locationLoadingText: {
     fontSize: 14,
-    color: colors.textSecondary,
   },
   locationErrorContainer: {
     padding: 16,
-    backgroundColor: colors.error + "15",
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: colors.error,
     gap: 12,
   },
   locationErrorHeader: {
@@ -578,11 +570,9 @@ const styles = StyleSheet.create({
   locationErrorTitle: {
     fontSize: 16,
     fontWeight: "700" as const,
-    color: colors.error,
   },
   locationErrorText: {
     fontSize: 14,
-    color: colors.text,
     lineHeight: 20,
   },
   enableLocationButton: {
@@ -590,7 +580,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: colors.error,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -599,7 +588,6 @@ const styles = StyleSheet.create({
   enableLocationButtonText: {
     fontSize: 14,
     fontWeight: "600" as const,
-    color: colors.white,
   },
   retryButton: {
     alignItems: "center",
@@ -609,47 +597,37 @@ const styles = StyleSheet.create({
   retryButtonText: {
     fontSize: 14,
     fontWeight: "600" as const,
-    color: colors.error,
   },
   locationInfo: {
     gap: 16,
   },
   addressInputContainer: {
-    backgroundColor: colors.background,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: colors.border,
     gap: 8,
   },
   addressLabel: {
     fontSize: 14,
     fontWeight: "600" as const,
-    color: colors.textSecondary,
   },
   addressInput: {
     fontSize: 16,
-    color: colors.text,
     minHeight: 60,
     textAlignVertical: "top",
     padding: 12,
-    backgroundColor: colors.surface,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   coordinatesBox: {
-    backgroundColor: colors.background,
     borderRadius: 12,
     padding: 16,
     gap: 12,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   coordinatesTitle: {
     fontSize: 14,
     fontWeight: "600" as const,
-    color: colors.textSecondary,
     marginBottom: 4,
   },
   coordinateRow: {
@@ -659,18 +637,15 @@ const styles = StyleSheet.create({
   },
   coordinateLabel: {
     fontSize: 14,
-    color: colors.textSecondary,
     fontWeight: "500" as const,
   },
   coordinateValue: {
     fontSize: 16,
-    color: colors.text,
     fontWeight: "600" as const,
     fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
   },
   accuracyText: {
     fontSize: 12,
-    color: colors.textTertiary,
     marginTop: 4,
   },
   locationActions: {
@@ -684,16 +659,13 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: colors.background,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.primary,
     flex: 1,
   },
   copyButtonText: {
     fontSize: 14,
     fontWeight: "600" as const,
-    color: colors.primary,
   },
   useLocationButton: {
     flexDirection: "row",
@@ -702,14 +674,12 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: colors.primary,
     borderRadius: 8,
     flex: 2,
   },
   useLocationButtonText: {
     fontSize: 14,
     fontWeight: "600" as const,
-    color: colors.white,
   },
   servicesSection: {
     marginBottom: 24,
@@ -717,7 +687,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "700" as const,
-    color: colors.text,
     marginBottom: 16,
   },
   serviceCards: {
@@ -749,12 +718,10 @@ const styles = StyleSheet.create({
   serviceTitle: {
     fontSize: 20,
     fontWeight: "700" as const,
-    color: colors.white,
     marginBottom: 6,
   },
   serviceDescription: {
     fontSize: 14,
-    color: colors.white,
     opacity: 0.9,
   },
   activeSection: {
@@ -772,21 +739,17 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: "center",
     borderWidth: 2,
-    borderColor: colors.primary,
   },
   activeCount: {
     fontSize: 48,
     fontWeight: "700" as const,
-    color: colors.primary,
     marginBottom: 4,
   },
   activeLabel: {
     fontSize: 16,
-    color: colors.textSecondary,
     marginBottom: 16,
   },
   viewButton: {
-    backgroundColor: colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -794,7 +757,6 @@ const styles = StyleSheet.create({
   viewButtonText: {
     fontSize: 14,
     fontWeight: "600" as const,
-    color: colors.white,
   },
   queueCounter: {
     backgroundColor: "rgba(26, 26, 26, 0.95)",
@@ -802,7 +764,6 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 24,
     borderWidth: 2,
-    borderColor: colors.primary,
   },
   queueCounterContent: {
     flexDirection: "row",
@@ -813,14 +774,12 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
   queueNumber: {
     fontSize: 32,
     fontWeight: "700" as const,
-    color: colors.white,
   },
   queueInfo: {
     flex: 1,
@@ -828,12 +787,10 @@ const styles = StyleSheet.create({
   queueTitle: {
     fontSize: 20,
     fontWeight: "700" as const,
-    color: colors.text,
     marginBottom: 4,
   },
   queueSubtitle: {
     fontSize: 14,
-    color: colors.textSecondary,
   },
 
   mascotSmallIcon: {
@@ -847,13 +804,11 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(26, 26, 26, 0.95)",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.border,
     alignItems: "center" as const,
   },
   employeeLoginText: {
     fontSize: 14,
     fontWeight: "600" as const,
-    color: colors.textSecondary,
   },
   employeeInfoCard: {
     marginTop: 24,
@@ -861,23 +816,19 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(26, 26, 26, 0.95)",
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: colors.primary,
     alignItems: "center" as const,
   },
   employeeInfoTitle: {
     fontSize: 12,
-    color: colors.textSecondary,
     marginBottom: 4,
   },
   employeeInfoName: {
     fontSize: 16,
     fontWeight: "700" as const,
-    color: colors.text,
     marginBottom: 2,
   },
   employeeInfoRole: {
     fontSize: 12,
-    color: colors.primary,
     fontWeight: "600" as const,
   },
 });
