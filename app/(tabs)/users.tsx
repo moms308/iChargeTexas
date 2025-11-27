@@ -186,6 +186,7 @@ export default function UsersScreen() {
   };
 
   const managedUsers = allUsers.filter(u => u.role !== "user");
+  const canDeleteUsers = false;
 
   return (
     <View style={styles.container}>
@@ -439,7 +440,7 @@ export default function UsersScreen() {
                       </View>
                     )}
                   </View>
-                  {user.role !== "super_admin" && currentUser && (currentUser.role === "admin" || currentUser.role === "super_admin") && (
+                  {user.role !== "super_admin" && canDeleteUsers && (
                     <TouchableOpacity
                       style={styles.deleteButton}
                       onPress={() => handleDeleteUser(user)}
