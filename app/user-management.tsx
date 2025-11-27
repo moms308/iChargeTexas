@@ -18,6 +18,7 @@ import {
   ArrowLeft,
   Lock,
   Settings,
+  UserPlus,
 } from "lucide-react-native";
 import React, { useState } from "react";
 import {
@@ -227,6 +228,35 @@ export default function UserManagementScreen() {
             <Text style={styles.headerTitle}>User Management</Text>
             <Text style={styles.headerSubtitle}>{managedUsers.length} staff members</Text>
           </View>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => {
+              setModalType("create");
+              setSelectedUser(null);
+              setFormData({
+                username: "",
+                password: "",
+                fullName: "",
+                email: "",
+                phone: "",
+                role: "worker" as UserRole,
+                isActive: true,
+                permissions: {
+                  canManageUsers: false,
+                  canViewReports: true,
+                  canHandleRequests: true,
+                  canCreateInvoices: false,
+                  canViewCustomerInfo: true,
+                  canDeleteData: false,
+                },
+              });
+              setShowPassword(false);
+              setModalVisible(true);
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <UserPlus color={colors.white} size={20} />
+          </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
@@ -236,7 +266,37 @@ export default function UserManagementScreen() {
                 <Users color={colors.textTertiary} size={64} />
               </View>
               <Text style={styles.emptyTitle}>No Staff Members</Text>
-              <Text style={styles.emptyMessage}>No admin or worker accounts have been created yet. Create new staff members using the Admin tab.</Text>
+              <Text style={styles.emptyMessage}>No admin or worker accounts have been created yet. Click the + button above to add employees.</Text>
+              <TouchableOpacity
+                style={styles.emptyActionButton}
+                onPress={() => {
+                  setModalType("create");
+                  setSelectedUser(null);
+                  setFormData({
+                    username: "",
+                    password: "",
+                    fullName: "",
+                    email: "",
+                    phone: "",
+                    role: "worker" as UserRole,
+                    isActive: true,
+                    permissions: {
+                      canManageUsers: false,
+                      canViewReports: true,
+                      canHandleRequests: true,
+                      canCreateInvoices: false,
+                      canViewCustomerInfo: true,
+                      canDeleteData: false,
+                    },
+                  });
+                  setShowPassword(false);
+                  setModalVisible(true);
+                }}
+                activeOpacity={0.8}
+              >
+                <UserPlus color={colors.white} size={20} />
+                <Text style={styles.emptyActionText}>Add Employee</Text>
+              </TouchableOpacity>
             </View>
           ) : (
             <View style={styles.userList}>
