@@ -1,12 +1,14 @@
 import { Tabs } from "expo-router";
-import { Home, Plus, History, Shield, MessageSquare, Users as UsersIcon, MessageCircle } from "lucide-react-native";
+import { Home, Plus, History, Shield, MessageSquare, Users as UsersIcon, MessageCircle, Settings } from "lucide-react-native";
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import colors from "@/constants/colors";
 import { useService } from "@/constants/serviceContext";
+import { useAuth } from "@/constants/authContext";
 
 export default function TabLayout() {
   const { requests } = useService();
+  const { user } = useAuth();
   
   const pendingRequests = requests.filter((r) => r.status === "pending");
   
@@ -15,6 +17,8 @@ export default function TabLayout() {
     const adminMessages = messages.filter(m => m.sender === "admin");
     return count + adminMessages.length;
   }, 0);
+
+  const isAdminOrSuperAdmin = user?.role === "admin" || user?.role === "super_admin";
 
   return (
     <Tabs
@@ -42,6 +46,7 @@ export default function TabLayout() {
           title: "Dashboard",
           headerTitle: "iChargeTexas",
           tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
+          href: isAdminOrSuperAdmin ? null : undefined,
         }}
       />
       <Tabs.Screen
@@ -50,6 +55,7 @@ export default function TabLayout() {
           title: "New Request",
           headerTitle: "Create Request",
           tabBarIcon: ({ color, size }) => <Plus color={color} size={size} />,
+          href: isAdminOrSuperAdmin ? null : undefined,
         }}
       />
       <Tabs.Screen
@@ -78,6 +84,7 @@ export default function TabLayout() {
               )}
             </View>
           ),
+          href: isAdminOrSuperAdmin ? null : undefined,
         }}
       />
       <Tabs.Screen
@@ -104,6 +111,15 @@ export default function TabLayout() {
           headerTitle: "Staff Messenger",
           tabBarIcon: ({ color, size }) => <MessageCircle color={color} size={size} />,
           href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="customization"
+        options={{
+          title: "Customization",
+          headerTitle: "Customization",
+          tabBarIcon: ({ color, size }) => <Settings color={color} size={size} />,
+          href: isAdminOrSuperAdmin ? undefined : null,
         }}
       />
     </Tabs>
