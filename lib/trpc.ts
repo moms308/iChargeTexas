@@ -27,18 +27,24 @@ export const trpcClient = trpc.createClient({
       transformer: superjson,
       url: `${getBaseUrl()}/api/trpc`,
       async headers() {
+        const headers: Record<string, string> = {};
+        
         const storedUser = await AsyncStorage.getItem("@current_user");
         if (storedUser && storedUser !== "null" && storedUser !== "undefined") {
           try {
             const user = JSON.parse(storedUser);
-            return {
-              authorization: `Bearer ${user.id}`,
-            };
+            headers.authorization = `Bearer ${user.id}`;
           } catch (e) {
             console.error("[tRPC] Error parsing stored user:", e);
           }
         }
-        return {};
+        
+        const tenantId = await AsyncStorage.getItem("@current_tenant_id");
+        if (tenantId && tenantId !== "null" && tenantId !== "undefined") {
+          headers["x-tenant-id"] = tenantId;
+        }
+        
+        return headers;
       },
       async fetch(url, options) {
         const response = await fetch(url, options);

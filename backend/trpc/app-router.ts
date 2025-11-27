@@ -5,6 +5,13 @@ import { loginProcedure } from "./routes/auth/login/route";
 import { getAuditLogsProcedure } from "./routes/auth/get-audit-logs/route";
 import { createEmployeeProcedure } from "./routes/auth/create-employee/route";
 import { getEmployeesProcedure } from "./routes/auth/get-employees/route";
+import { registerTenantProcedure } from "./routes/tenant/register/route";
+import { getTenantProcedure } from "./routes/tenant/get-tenant/route";
+import { listTenantsProcedure } from "./routes/tenant/list-tenants/route";
+import { updateTenantProcedure } from "./routes/tenant/update-tenant/route";
+import { createSubscriptionProcedure } from "./routes/billing/create-subscription/route";
+import { cancelSubscriptionProcedure } from "./routes/billing/cancel-subscription/route";
+import { getTenantUsageProcedure } from "./routes/billing/get-usage/route";
 
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
@@ -18,6 +25,17 @@ export const appRouter = createTRPCRouter({
     getAuditLogs: getAuditLogsProcedure,
     createEmployee: createEmployeeProcedure,
     getEmployees: getEmployeesProcedure,
+  }),
+  tenant: createTRPCRouter({
+    register: registerTenantProcedure,
+    getTenant: getTenantProcedure,
+    listTenants: listTenantsProcedure,
+    updateTenant: updateTenantProcedure,
+  }),
+  billing: createTRPCRouter({
+    createSubscription: createSubscriptionProcedure,
+    cancelSubscription: cancelSubscriptionProcedure,
+    getUsage: getTenantUsageProcedure,
   }),
 });
 

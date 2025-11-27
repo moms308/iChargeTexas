@@ -9,6 +9,7 @@ export interface Message {
 
 export interface ServiceRequest {
   id: string;
+  tenantId?: string;
   type: ServiceType;
   name: string;
   phone: string;
@@ -78,6 +79,7 @@ export interface SystemUser {
   createdAt: string;
   lastLogin?: string;
   createdBy: string;
+  tenantId?: string;
   permissions?: {
     canManageUsers: boolean;
     canViewReports: boolean;
@@ -109,4 +111,64 @@ export interface StaffNotification {
   relatedId?: string;
   timestamp: string;
   read: boolean;
+}
+
+export type TenantStatus = "trial" | "active" | "suspended" | "canceled";
+
+export type SubscriptionPlan = "starter" | "professional" | "enterprise";
+
+export interface Tenant {
+  id: string;
+  businessName: string;
+  subdomain: string;
+  contactEmail: string;
+  contactPhone?: string;
+  contactName: string;
+  logo?: string;
+  status: TenantStatus;
+  plan: SubscriptionPlan;
+  createdAt: string;
+  updatedAt: string;
+  trialEndsAt?: string;
+  subscriptionEndsAt?: string;
+  features: {
+    maxUsers: number;
+    maxRequests: number;
+    customBranding: boolean;
+    apiAccess: boolean;
+    advancedReporting: boolean;
+  };
+  billing?: {
+    customerId?: string;
+    subscriptionId?: string;
+    lastPaymentDate?: string;
+    nextPaymentDate?: string;
+    amount: number;
+  };
+  settings?: {
+    timeZone: string;
+    currency: string;
+    language: string;
+  };
+}
+
+export interface TenantInvitation {
+  id: string;
+  tenantId: string;
+  email: string;
+  role: UserRole;
+  invitedBy: string;
+  invitedAt: string;
+  expiresAt: string;
+  status: "pending" | "accepted" | "expired";
+  token: string;
+}
+
+export interface TenantUsage {
+  tenantId: string;
+  month: string;
+  activeUsers: number;
+  totalRequests: number;
+  storageUsed: number;
+  apiCalls: number;
 }

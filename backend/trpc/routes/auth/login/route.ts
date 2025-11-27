@@ -59,10 +59,11 @@ export const loginProcedure = publicProcedure
     z.object({
       username: z.string(),
       password: z.string(),
+      tenantId: z.string().optional(),
     })
   )
   .mutation(async ({ input }) => {
-    const { username, password } = input;
+    const { username, password, tenantId } = input;
 
     if (username === SUPER_ADMIN.username && await verifyPassword(password, SUPER_ADMIN.passwordHash)) {
       const userToReturn = {
@@ -78,10 +79,52 @@ export const loginProcedure = publicProcedure
       });
 
       const { passwordHash, ...userWithoutPassword } = userToReturn;
-      return { success: true, user: userWithoutPassword };
+      return { success: true, user: userWithoutPassword, tenantId: null };
     }
 
-    const employees = await kv.getJSON<any[]>("employees") || [];
+    if (!tenantId) {
+      await logAuditEntry({
+        username,
+        action: "login_failed",
+        details: "Missing tenant ID for non-super admin login",
+      });
+
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Tenant ID is required",
+      });
+    }
+
+    const tenants = await kv.getJSON<any[]>("tenants") || [];
+    const tenant = tenants.find(t => t.id === tenantId);
+
+    if (!tenant) {
+      await logAuditEntry({
+        username,
+        action: "login_failed",
+        details: "Invalid tenant ID",
+      });
+
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Tenant not found",
+      });
+    }
+
+    if (tenant.status === "suspended" || tenant.status === "canceled") {
+      await logAuditEntry({
+        username,
+        action: "login_failed",
+        details: `Tenant account is ${tenant.status}`,
+      });
+
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: `This account is ${tenant.status}. Please contact support.`,
+      });
+    }
+
+    const employees = await kv.getJSON<any[]>(`tenant:${tenantId}:users`) || [];
     const employee = employees.find((e) => e.username === username && e.isActive);
 
     if (employee && await verifyPassword(password, employee.passwordHash)) {
@@ -93,7 +136,7 @@ export const loginProcedure = publicProcedure
       const updatedEmployees = employees.map((e) => 
         e.id === employee.id ? updatedEmployee : e
       );
-      await kv.setJSON("employees", updatedEmployees);
+      await kv.setJSON(`tenant:${tenantId}:users`, updatedEmployees);
 
       await logAuditEntry({
         username,
@@ -103,7 +146,7 @@ export const loginProcedure = publicProcedure
       });
 
       const { passwordHash, ...userWithoutPassword } = updatedEmployee;
-      return { success: true, user: userWithoutPassword };
+      return { success: true, user: userWithoutPassword, tenantId: tenantId, tenant: { businessName: tenant.businessName, logo: tenant.logo } };
     }
 
     await logAuditEntry({

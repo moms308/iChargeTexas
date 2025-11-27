@@ -47,4 +47,42 @@ export const kv = {
   async setJSON<T>(key: string, value: T): Promise<void> {
     await this.set(key, JSON.stringify(value));
   },
+
+  tenant(tenantId: string) {
+    return {
+      async get(key: string): Promise<string | null> {
+        return kv.get(`tenant:${tenantId}:${key}`);
+      },
+
+      async set(key: string, value: string): Promise<void> {
+        return kv.set(`tenant:${tenantId}:${key}`, value);
+      },
+
+      async delete(key: string): Promise<void> {
+        return kv.delete(`tenant:${tenantId}:${key}`);
+      },
+
+      async has(key: string): Promise<boolean> {
+        return kv.has(`tenant:${tenantId}:${key}`);
+      },
+
+      async getJSON<T>(key: string): Promise<T | null> {
+        return kv.getJSON<T>(`tenant:${tenantId}:${key}`);
+      },
+
+      async setJSON<T>(key: string, value: T): Promise<void> {
+        return kv.setJSON(`tenant:${tenantId}:${key}`, value);
+      },
+
+      async keys(): Promise<string[]> {
+        const allKeys = await kv.keys();
+        const prefix = `tenant:${tenantId}:`;
+        return allKeys
+          .filter(k => k.startsWith(prefix))
+          .map(k => k.replace(prefix, ""));
+      },
+    };
+  },
 };
+
+export type TenantStorage = ReturnType<typeof kv.tenant>;
