@@ -257,7 +257,7 @@ export default function CustomizationScreen() {
             <View style={[styles.buttonCustomItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={styles.buttonCustomHeader}>
                 <ImageIcon size={20} color={colors.primary} />
-                <Text style={[styles.buttonCustomLabel, { color: colors.text }]}>Service Buttons Robot Icon</Text>
+                <Text style={[styles.buttonCustomLabel, { color: colors.text }]}>service buttons</Text>
               </View>
               <Text style={[styles.buttonCustomSubLabel, { color: colors.textSecondary }]}>
                 Apply a single image to replace the little robot on both Roadside Assistance and Schedule Charging buttons.
