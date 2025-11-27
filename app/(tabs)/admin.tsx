@@ -1651,200 +1651,195 @@ export default function AdminScreen() {
         colors={[colors.background, colors.surface]}
         style={styles.gradient}
       >
-        <View style={styles.headerContainer}>
-          <View style={styles.headerTitleSection}>
-            <Text style={styles.adminTitle}>Admin Tab</Text>
-            <Text style={styles.adminSubtitle}>
-              Open access mode
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.quickActionsContainer}>
-          <Text style={styles.quickActionsTitle}>Quick Actions</Text>
-          <View style={styles.quickActionsGrid}>
-            <TouchableOpacity
-              style={styles.quickActionCard}
-              onPress={handleOpenConversationList}
-            >
-              <MessageSquare color={"#2196F3"} size={28} />
-              <Text style={styles.quickActionLabel}>Messages</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.quickActionCard}
-              onPress={() => {
-                if (Platform.OS !== "web") {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }
-                router.push('/(tabs)/messenger');
-              }}
-            >
-              <MessageSquare color={"#9C27B0"} size={28} />
-              <Text style={styles.quickActionLabel}>Staff Chat</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.quickActionCard}
-              onPress={handleOpenUserManagement}
-            >
-              <UsersIcon color={"#4CAF50"} size={28} />
-              <Text style={styles.quickActionLabel}>Users</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.quickActionCard}
-              onPress={() => {
-                const newRequest = createTestInvoice();
-                if (Platform.OS !== "web") {
-                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                }
-                Alert.alert(
-                  "✅ Test Invoice Created!",
-                  `A test invoice has been created:\n\nID: ${newRequest.id}\nCustomer: ${newRequest.name}\nEmail: ${newRequest.email}\n\nSwitch to pending requests to see it.`,
-                  [
-                    { text: "OK" },
-                  ]
-                );
-              }}
-            >
-              <FileText color={colors.success} size={28} />
-              <Text style={styles.quickActionLabel}>Test Invoice</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.quickActionCard}
-              onPress={() => {
-                if (Platform.OS !== "web") {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }
-                router.push('/audit-logs');
-              }}
-            >
-              <Shield color={"#FF6B35"} size={28} />
-              <Text style={styles.quickActionLabel}>Audit Logs</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.quickActionCard}
-              onPress={() => {
-                if (Platform.OS !== "web") {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }
-                setPriceManagementVisible(true);
-              }}
-            >
-              <DollarSign color={"#10B981"} size={28} />
-              <Text style={styles.quickActionLabel}>Change Prices</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-
-
-        <View style={styles.tabContainer}>
-          <Text style={styles.requestsSectionTitle}>View Requests</Text>
-          <View style={styles.tabGrid}>
-            <TouchableOpacity
-              style={[styles.viewTabCard, adminTab === "active" && styles.viewTabCardActive]}
-              onPress={() => {
-                setAdminTab("active");
-                setFilter("all");
-              }}
-            >
-              <Clock size={18} color={adminTab === "active" ? colors.white : colors.warning} />
-              <Text style={[styles.viewTabTitle, adminTab === "active" && styles.viewTabTitleActive]}>
-                {requests.filter((r) => r.status === "pending" || r.status === "scheduled").length}
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[styles.viewTabCard, adminTab === "archive" && styles.viewTabCardActive]}
-              onPress={() => {
-                setAdminTab("archive");
-                setFilter("all");
-              }}
-            >
-              <Archive size={18} color={adminTab === "archive" ? colors.white : colors.textSecondary} />
-              <Text style={[styles.viewTabTitle, adminTab === "archive" && styles.viewTabTitleActive]}>
-                {requests.filter((r) => r.status === "completed" || r.status === "canceled").length}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.total}</Text>
-            <Text style={styles.statLabel}>Total Requests</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statValue, { color: colors.success }]}>
-              {stats.completed}
-            </Text>
-            <Text style={styles.statLabel}>Completed</Text>
-          </View>
-          <TouchableOpacity 
-            style={styles.statCard}
-            onPress={() => {
-              if (stats.pending > 0) {
-                router.push('/history');
-              }
-            }}
-            disabled={stats.pending === 0}
-            activeOpacity={stats.pending > 0 ? 0.7 : 1}
-          >
-            <Text style={[styles.statValue, { color: colors.warning }]}>
-              {stats.pending}
-            </Text>
-            <Text style={styles.statLabel}>Pending</Text>
-          </TouchableOpacity>
-        </View>
-
-
-
-        {adminTab === "archive" && (
-          <View style={styles.archiveActionsContainer}>
-            <TouchableOpacity
-              style={styles.downloadReportButton}
-              onPress={async () => {
-                if (filteredRequests.length === 0) {
-                  Alert.alert("No Data", "There are no archived requests to export.");
-                  return;
-                }
-                
-                const report = generateArchiveReport(filteredRequests);
-                
-                try {
-                  if (Platform.OS === "web") {
-                    await Clipboard.setStringAsync(report);
-                    Alert.alert("Success", "Report copied to clipboard!");
-                  } else {
-                    await Share.share({
-                      message: report,
-                      title: "Service Requests Archive Report",
-                    });
-                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                  }
-                } catch (error) {
-                  console.error("Error sharing report:", error);
-                  Alert.alert("Error", "Failed to share report. Please try again.");
-                }
-              }}
-            >
-              <Share2 color={colors.white} size={20} />
-              <Text style={styles.downloadReportText}>Share Archive Report</Text>
-            </TouchableOpacity>
-            
-            <View style={styles.archiveStats}>
-              <FileText color={colors.textSecondary} size={16} />
-              <Text style={styles.archiveStatsText}>
-                {filteredRequests.length} archived request{filteredRequests.length !== 1 ? 's' : ''}
+        <ScrollView
+          style={styles.mainScrollView}
+          contentContainerStyle={styles.mainScrollContent}
+          showsVerticalScrollIndicator={true}
+        >
+          <View style={styles.headerContainer}>
+            <View style={styles.headerTitleSection}>
+              <Text style={styles.adminTitle}>Admin Tab</Text>
+              <Text style={styles.adminSubtitle}>
+                Open access mode
               </Text>
             </View>
           </View>
-        )}
 
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
+          <View style={styles.quickActionsContainer}>
+            <Text style={styles.quickActionsTitle}>Quick Actions</Text>
+            <View style={styles.quickActionsGrid}>
+              <TouchableOpacity
+                style={styles.quickActionCard}
+                onPress={handleOpenConversationList}
+              >
+                <MessageSquare color={"#2196F3"} size={24} />
+                <Text style={styles.quickActionLabel}>Messages</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.quickActionCard}
+                onPress={() => {
+                  if (Platform.OS !== "web") {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  router.push('/(tabs)/messenger');
+                }}
+              >
+                <MessageSquare color={"#9C27B0"} size={24} />
+                <Text style={styles.quickActionLabel}>Staff Chat</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.quickActionCard}
+                onPress={handleOpenUserManagement}
+              >
+                <UsersIcon color={"#4CAF50"} size={24} />
+                <Text style={styles.quickActionLabel}>Users</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.quickActionCard}
+                onPress={() => {
+                  const newRequest = createTestInvoice();
+                  if (Platform.OS !== "web") {
+                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  }
+                  Alert.alert(
+                    "✅ Test Invoice Created!",
+                    `A test invoice has been created:\n\nID: ${newRequest.id}\nCustomer: ${newRequest.name}\nEmail: ${newRequest.email}\n\nSwitch to pending requests to see it.`,
+                    [
+                      { text: "OK" },
+                    ]
+                  );
+                }}
+              >
+                <FileText color={colors.success} size={24} />
+                <Text style={styles.quickActionLabel}>Test Invoice</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.quickActionCard}
+                onPress={() => {
+                  if (Platform.OS !== "web") {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  router.push('/audit-logs');
+                }}
+              >
+                <Shield color={"#FF6B35"} size={24} />
+                <Text style={styles.quickActionLabel}>Audit Logs</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.quickActionCard}
+                onPress={() => {
+                  if (Platform.OS !== "web") {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  setPriceManagementVisible(true);
+                }}
+              >
+                <DollarSign color={"#10B981"} size={24} />
+                <Text style={styles.quickActionLabel}>Change Prices</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.tabContainer}>
+            <Text style={styles.requestsSectionTitle}>View Requests</Text>
+            <View style={styles.tabGrid}>
+              <TouchableOpacity
+                style={[styles.viewTabCard, adminTab === "active" && styles.viewTabCardActive]}
+                onPress={() => {
+                  setAdminTab("active");
+                  setFilter("all");
+                }}
+              >
+                <Clock size={18} color={adminTab === "active" ? colors.white : colors.warning} />
+                <Text style={[styles.viewTabTitle, adminTab === "active" && styles.viewTabTitleActive]}>
+                  {requests.filter((r) => r.status === "pending" || r.status === "scheduled").length}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.viewTabCard, adminTab === "archive" && styles.viewTabCardActive]}
+                onPress={() => {
+                  setAdminTab("archive");
+                  setFilter("all");
+                }}
+              >
+                <Archive size={18} color={adminTab === "archive" ? colors.white : colors.textSecondary} />
+                <Text style={[styles.viewTabTitle, adminTab === "archive" && styles.viewTabTitleActive]}>
+                  {requests.filter((r) => r.status === "completed" || r.status === "canceled").length}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.statsContainer}>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>{stats.total}</Text>
+              <Text style={styles.statLabel}>Total Requests</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={[styles.statValue, { color: colors.success }]}>
+                {stats.completed}
+              </Text>
+              <Text style={styles.statLabel}>Completed</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.statCard}
+              onPress={() => {
+                if (stats.pending > 0) {
+                  router.push('/history');
+                }
+              }}
+              disabled={stats.pending === 0}
+              activeOpacity={stats.pending > 0 ? 0.7 : 1}
+            >
+              <Text style={[styles.statValue, { color: colors.warning }]}>
+                {stats.pending}
+              </Text>
+              <Text style={styles.statLabel}>Pending</Text>
+            </TouchableOpacity>
+          </View>
+
+          {adminTab === "archive" && (
+            <View style={styles.archiveActionsContainer}>
+              <TouchableOpacity
+                style={styles.downloadReportButton}
+                onPress={async () => {
+                  if (filteredRequests.length === 0) {
+                    Alert.alert("No Data", "There are no archived requests to export.");
+                    return;
+                  }
+                  
+                  const report = generateArchiveReport(filteredRequests);
+                  
+                  try {
+                    if (Platform.OS === "web") {
+                      await Clipboard.setStringAsync(report);
+                      Alert.alert("Success", "Report copied to clipboard!");
+                    } else {
+                      await Share.share({
+                        message: report,
+                        title: "Service Requests Archive Report",
+                      });
+                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    }
+                  } catch (error) {
+                    console.error("Error sharing report:", error);
+                    Alert.alert("Error", "Failed to share report. Please try again.");
+                  }
+                }}
+              >
+                <Share2 color={colors.white} size={20} />
+                <Text style={styles.downloadReportText}>Share Archive Report</Text>
+              </TouchableOpacity>
+              
+              <View style={styles.archiveStats}>
+                <FileText color={colors.textSecondary} size={16} />
+                <Text style={styles.archiveStatsText}>
+                  {filteredRequests.length} archived request{filteredRequests.length !== 1 ? 's' : ''}
+                </Text>
+              </View>
+            </View>
+          )}
           {sortedRequests.length === 0 ? (
             <View style={styles.emptyState}>
               <View style={styles.emptyIconContainer}>
@@ -3094,39 +3089,39 @@ const styles = StyleSheet.create({
   },
   quickActionsContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 16,
-    paddingBottom: 24,
+    paddingVertical: 12,
+    paddingBottom: 16,
   },
   quickActionsTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600" as const,
     color: colors.textSecondary,
     textTransform: "uppercase" as const,
     letterSpacing: 1,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   quickActionsGrid: {
     flexDirection: "row" as const,
     flexWrap: "wrap" as const,
-    gap: 12,
-    rowGap: 12,
+    gap: 10,
+    rowGap: 10,
   },
   quickActionCard: {
     width: "31%",
-    minWidth: 100,
+    minWidth: 90,
     backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 10,
+    padding: 12,
     alignItems: "center" as const,
     justifyContent: "center" as const,
-    gap: 8,
+    gap: 6,
     borderWidth: 1,
     borderColor: colors.border,
     position: "relative" as const,
     aspectRatio: 1,
   },
   quickActionLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "600" as const,
     color: colors.text,
     textAlign: "center" as const,
@@ -3207,6 +3202,7 @@ const styles = StyleSheet.create({
   adminActionsSection: {
     marginTop: 24,
     paddingTop: 24,
+    paddingHorizontal: 16,
     borderTopWidth: 1,
     borderTopColor: colors.border,
     gap: 12,
@@ -3324,24 +3320,24 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: "row",
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 10,
-    marginTop: 8,
+    paddingVertical: 10,
+    gap: 8,
+    marginTop: 4,
   },
   statCard: {
     flex: 1,
     backgroundColor: colors.surface,
-    borderRadius: 10,
-    padding: 12,
+    borderRadius: 8,
+    padding: 10,
     alignItems: "center",
     borderWidth: 1,
     borderColor: colors.border,
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "700" as const,
     color: colors.text,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   statLabel: {
     fontSize: 10,
@@ -3404,6 +3400,12 @@ const styles = StyleSheet.create({
   filterBadgeTextActive: {
     color: colors.white,
   },
+  mainScrollView: {
+    flex: 1,
+  },
+  mainScrollContent: {
+    paddingBottom: 40,
+  },
   scrollView: {
     flex: 1,
   },
@@ -3413,6 +3415,7 @@ const styles = StyleSheet.create({
   },
   logContainer: {
     gap: 12,
+    paddingHorizontal: 16,
   },
   requestCard: {
     backgroundColor: colors.surface,
@@ -3816,6 +3819,7 @@ const styles = StyleSheet.create({
   errorResetSection: {
     marginTop: 40,
     paddingTop: 24,
+    paddingHorizontal: 16,
     borderTopWidth: 1,
     borderTopColor: colors.border,
     alignItems: "center",
