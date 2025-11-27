@@ -181,7 +181,7 @@ export default function HomeScreen() {
 
           <View style={styles.header}>
             <View>
-              <Text style={[styles.greeting, { color: colors.text }]}>{t.appTitle}</Text>
+              <Text style={[styles.greeting, { color: colors.text }]}>{theme.businessName}</Text>
               <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t.subtitle}</Text>
             </View>
           </View>
