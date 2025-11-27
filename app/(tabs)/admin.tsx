@@ -1651,6 +1651,13 @@ export default function AdminScreen() {
           <View style={styles.quickActionsGrid}>
             <TouchableOpacity
               style={styles.quickActionCard}
+              onPress={handleOpenConversationList}
+            >
+              <MessageSquare color={"#2196F3"} size={28} />
+              <Text style={styles.quickActionLabel}>Messages</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickActionCard}
               onPress={() => {
                 if (Platform.OS !== "web") {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
