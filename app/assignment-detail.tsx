@@ -17,6 +17,7 @@ import { useService } from "@/constants/serviceContext";
 import { useMessenger } from "@/constants/messengerContext";
 import colors from "@/constants/colors";
 import { Message, SystemUser, GeoCoordinates, JobAcceptanceLog } from "@/constants/types";
+import { useAuth } from "@/constants/authContext";
 import * as Haptics from "expo-haptics";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -35,19 +36,27 @@ export default function AssignmentDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { requests, addMessage, updateRequestAssignedStaff, updateRequestStatus, addAcceptanceLog } = useService();
-  const currentUser = null as SystemUser | null;
-  const allUsers: SystemUser[] = [];
+  const { user: currentUser } = useAuth();
   const { addNotification } = useMessenger();
   
   const [messageText, setMessageText] = useState<string>("");
   const [assignModalVisible, setAssignModalVisible] = useState<boolean>(false);
   const [selectedWorkerIds, setSelectedWorkerIds] = useState<string[]>([]);
   const [availableStaff, setAvailableStaff] = useState<SystemUser[]>([]);
+  const [allUsers, setAllUsers] = useState<SystemUser[]>([]);
   const [isAccepting, setIsAccepting] = useState<boolean>(false);
   const [acceptanceError, setAcceptanceError] = useState<string | null>(null);
 
   const assignment = requests.find((r) => r.id === id);
   const acceptanceLogs = assignment?.acceptanceLogs ?? [];
+  const canAcceptAssignment = Boolean(
+    assignment &&
+    currentUser &&
+    assignment.status === 'pending' &&
+    (((assignment.assignedStaff ?? []).includes(currentUser.id)) ||
+      currentUser.role === 'admin' ||
+      currentUser.role === 'super_admin')
+  );
 
   useEffect(() => {
     loadAvailableStaff();
@@ -76,6 +85,7 @@ export default function AssignmentDetailScreen() {
           return;
         }
         
+        setAllUsers(users);
         const staff = users.filter(u => 
           u.isActive && (u.role === 'admin' || u.role === 'worker')
         );
@@ -351,7 +361,7 @@ export default function AssignmentDetailScreen() {
             <Text style={styles.backButtonText}>Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Assignment Details</Text>
-          {currentUser && assignment.assignedStaff?.includes(currentUser.id) && assignment.status === 'pending' && (
+          {canAcceptAssignment && currentUser && (
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 testID="accept-assignment-button"
@@ -395,7 +405,7 @@ export default function AssignmentDetailScreen() {
                               userId: admin.id,
                               type: 'task_assignment',
                               title: '❌ Assignment Declined',
-                              message: `${currentUser?.fullName || 'Staff member'} declined: ${assignment.title}`,
+                              message: `${currentUser.fullName} declined: ${assignment.title}`,
                               relatedId: assignment.id,
                             });
                           }
@@ -413,7 +423,7 @@ export default function AssignmentDetailScreen() {
               </TouchableOpacity>
             </View>
           )}
-          {(!currentUser || !assignment.assignedStaff?.includes(currentUser.id) || assignment.status !== 'pending') && (
+          {!canAcceptAssignment && (
             <View style={{ width: 80 }} />
           )}
         </View>
