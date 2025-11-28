@@ -55,18 +55,34 @@ export default function UserManagementScreen() {
   });
 
   const createEmployeeMutation = trpc.auth.createEmployee.useMutation({
-    onSuccess: () => {
-      employeesQuery.refetch();
-      credentialsQuery.refetch();
+    onSuccess: async () => {
+      console.log('[UserManagement] User created successfully, refetching data');
+      await employeesQuery.refetch();
+      await credentialsQuery.refetch();
+      console.log('[UserManagement] Data refetched successfully');
+    },
+    onError: (error) => {
+      console.error('[UserManagement] Create mutation error:', error);
     },
   });
   const updateEmployeeMutation = trpc.auth.updateEmployee.useMutation({
-    onSuccess: () => {
-      employeesQuery.refetch();
+    onSuccess: async () => {
+      console.log('[UserManagement] User updated successfully, refetching data');
+      await employeesQuery.refetch();
+      console.log('[UserManagement] Data refetched successfully');
+    },
+    onError: (error) => {
+      console.error('[UserManagement] Update mutation error:', error);
     },
   });
   
   const allUsers: SystemUser[] = (employeesQuery.data || []) as SystemUser[];
+  
+  console.log('[UserManagement] All users loaded:', allUsers.length);
+  console.log('[UserManagement] Users by role:', allUsers.reduce((acc, u) => {
+    acc[u.role] = (acc[u.role] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>));
   
   const getRoleDisplayName = (role: UserRole) => {
     switch (role) {
@@ -263,6 +279,7 @@ export default function UserManagementScreen() {
   };
 
   const managedUsers = allUsers.filter(u => u.role !== "user");
+  console.log('[UserManagement] Managed users (filtered):', managedUsers.length);
 
   return (
     <View style={styles.container}>
