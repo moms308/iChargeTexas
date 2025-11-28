@@ -31,7 +31,6 @@ app.use(
   trpcServer({
     router: appRouter,
     createContext,
-    endpoint: "/api/trpc",
     onError({ error, type, path, input, ctx, req }) {
       console.error("[tRPC Error]", {
         type,

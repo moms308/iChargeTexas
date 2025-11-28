@@ -62,7 +62,7 @@ export const createEmployeeProcedure = protectedProcedure
   .input(
     z.object({
       username: z.string().min(3),
-      password: z.string().min(8),
+      password: z.string().min(6),
       role: z.enum(["admin", "worker", "employee"]),
       fullName: z.string(),
       email: z.string().email(),
