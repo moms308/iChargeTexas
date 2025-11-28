@@ -67,5 +67,13 @@ export const appRouter = createTRPCRouter({
 });
 
 console.log("[Router] namespaces registered:", Object.keys(appRouter._def.procedures));
+console.log("[Router] Full app router structure:", JSON.stringify({
+  example: Object.keys(exampleRouter._def.procedures),
+  auth: Object.keys(authRouter._def.procedures),
+  stripe: Object.keys(stripeRouter._def.procedures),
+  tenant: Object.keys(tenantRouter._def.procedures),
+  billing: Object.keys(billingRouter._def.procedures),
+  requests: Object.keys(requestsRouter._def.procedures),
+}, null, 2));
 
 export type AppRouter = typeof appRouter;

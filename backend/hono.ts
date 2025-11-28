@@ -24,11 +24,13 @@ async function seedData() {
     console.log("[Seed] Creating admin user");
     employees.push({
       id: "super_admin_001",
+      employeeId: "000001",
       username: "admin",
       passwordHash: "hashed_admin123", // In real app, hash this
       role: "super_admin",
       fullName: "System Admin",
       email: "admin@rork.app",
+      phone: "",
       isActive: true,
       createdAt: new Date().toISOString(),
       createdBy: "system",
@@ -59,8 +61,10 @@ async function seedData() {
   // Seed user "elena" as requested by user
   if (!employees.some((e) => e.username === "elena")) {
     console.log("[Seed] Creating user elena");
+    const elenaEmployeeId = (employees.length + 1).toString().padStart(6, '0');
     employees.push({
       id: `emp_${Date.now()}_elena`,
+      employeeId: elenaEmployeeId,
       username: "elena",
       passwordHash: "hashed_bacon",
       role: "worker",
@@ -130,6 +134,10 @@ app.onError((err, c) => {
   );
 });
 
+// Log available tRPC procedures
+const authProcedures = Object.keys((appRouter._def.procedures as any).auth?._def?.procedures || {});
+console.log("[Hono] Auth procedures available:", authProcedures);
+
 // Handle tRPC requests at /api/trpc
 app.use(
   "/api/trpc/*",
@@ -148,7 +156,7 @@ app.use(
   })
 );
 
-console.log("[Hono] tRPC middleware configured");
+console.log("[Hono] tRPC middleware configured at /api/trpc/*");
 
 app.get("/", (c) => {
   return c.json({ 
@@ -162,6 +170,19 @@ app.get("/", (c) => {
 app.get("/api/health", (c) => {
   return c.json({ 
     status: "healthy", 
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get("/api/debug/routes", (c) => {
+  const authProcedures = Object.keys((appRouter._def.procedures as any).auth?._def?.procedures || {});
+  return c.json({
+    status: "ok",
+    routes: {
+      auth: authProcedures,
+      example: Object.keys((appRouter._def.procedures as any).example?._def?.procedures || {}),
+      stripe: Object.keys((appRouter._def.procedures as any).stripe?._def?.procedures || {}),
+    },
     timestamp: new Date().toISOString(),
   });
 });
