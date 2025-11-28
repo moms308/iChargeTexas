@@ -58,7 +58,7 @@ async function hashPassword(password: string): Promise<string> {
   return `hashed_${password}`;
 }
 
-export default protectedProcedure
+export const createEmployeeProcedure = protectedProcedure
   .input(
     z.object({
       username: z.string().min(3),
