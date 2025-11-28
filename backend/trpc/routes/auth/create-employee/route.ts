@@ -3,11 +3,13 @@ import { protectedProcedure } from "../../../create-context";
 import { kv } from "../../../../storage";
 import { TRPCError } from "@trpc/server";
 
+const SUPER_ADMIN_ID = "super_admin_001";
+
 interface Employee {
   id: string;
   username: string;
   passwordHash: string;
-  role: "admin" | "employee";
+  role: "admin" | "worker" | "employee";
   fullName: string;
   email: string;
   phone: string;
@@ -61,7 +63,7 @@ export const createEmployeeProcedure = protectedProcedure
     z.object({
       username: z.string().min(3),
       password: z.string().min(8),
-      role: z.enum(["admin", "employee"]),
+      role: z.enum(["admin", "worker", "employee"]),
       fullName: z.string(),
       email: z.string().email(),
       phone: z.string(),
@@ -78,6 +80,18 @@ export const createEmployeeProcedure = protectedProcedure
   .mutation(async ({ input, ctx }) => {
     const employees = await kv.getJSON<Employee[]>("employees") || [];
 
+    const isSuperAdminRequest = ctx.userId === SUPER_ADMIN_ID;
+    const requestingUser = employees.find((e) => e.id === ctx.userId);
+
+    if (!isSuperAdminRequest) {
+      if (!requestingUser || requestingUser.role !== "admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only administrators can create new users",
+        });
+      }
+    }
+
     const existingUser = employees.find((e) => e.username === input.username);
     if (existingUser) {
       throw new TRPCError({
@@ -86,11 +100,13 @@ export const createEmployeeProcedure = protectedProcedure
       });
     }
 
+    const normalizedRole: Employee["role"] = input.role === "employee" ? "worker" : input.role;
+
     const newEmployee: Employee = {
       id: `emp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       username: input.username,
       passwordHash: await hashPassword(input.password),
-      role: input.role,
+      role: normalizedRole,
       fullName: input.fullName,
       email: input.email,
       phone: input.phone,
@@ -104,10 +120,10 @@ export const createEmployeeProcedure = protectedProcedure
     await kv.setJSON("employees", employees);
 
     await logAuditEntry({
-      username: "admin",
+      username: isSuperAdminRequest ? "super_admin" : requestingUser?.username || "system",
       action: "user_created",
       userId: ctx.userId,
-      details: `Created ${input.role} account for ${input.username}`,
+      details: `Created ${normalizedRole} account for ${input.username}`,
     });
 
     const { passwordHash, ...employeeWithoutPassword } = newEmployee;
