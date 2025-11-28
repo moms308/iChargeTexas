@@ -4,6 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ServiceContext } from "@/constants/serviceContext";
+import AppErrorBoundary from "@/components/AppErrorBoundary";
 import { UserContext } from "@/constants/userContext";
 import { LanguageContext } from "@/constants/languageContext";
 import { MessengerContext } from "@/constants/messengerContext";
@@ -62,9 +63,11 @@ export default function RootLayout() {
               <UserContext>
                 <ServiceContext>
                   <MessengerContext>
-                    <GestureHandlerRootView style={{ flex: 1 }}>
-                      <RootLayoutNav />
-                    </GestureHandlerRootView>
+                    <AppErrorBoundary>
+                      <GestureHandlerRootView style={{ flex: 1 }}>
+                        <RootLayoutNav />
+                      </GestureHandlerRootView>
+                    </AppErrorBoundary>
                   </MessengerContext>
                 </ServiceContext>
               </UserContext>
