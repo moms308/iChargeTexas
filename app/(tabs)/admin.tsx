@@ -45,6 +45,7 @@ import {
   UserPlus,
   Shield,
   DollarSign,
+  Route as RouteIcon,
 } from "lucide-react-native";
 import { roadsideServices } from "@/constants/serviceData";
 import React, { useState } from "react";
@@ -1736,6 +1737,18 @@ export default function AdminScreen() {
               >
                 <DollarSign color={"#10B981"} size={24} />
                 <Text style={styles.quickActionLabel}>Change Prices</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.quickActionCard}
+                onPress={() => {
+                  if (Platform.OS !== "web") {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  router.push('/mileage-logs');
+                }}
+              >
+                <RouteIcon color={"#FF5722"} size={24} />
+                <Text style={styles.quickActionLabel}>Mileage Logs</Text>
               </TouchableOpacity>
             </View>
           </View>
