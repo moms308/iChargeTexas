@@ -3,6 +3,8 @@ import { protectedProcedure } from "../../../create-context";
 import { kv } from "../../../../storage";
 import { TRPCError } from "@trpc/server";
 
+console.log("Loading create-employee route module");
+
 const SUPER_ADMIN_ID = "super_admin_001";
 
 interface Employee {

@@ -3,7 +3,7 @@ import hiRoute from "./routes/example/hi/route";
 import { createInvoiceProcedure } from "./routes/stripe/create-invoice/route";
 import { loginProcedure } from "./routes/auth/login/route";
 import { getAuditLogsProcedure } from "./routes/auth/get-audit-logs/route";
-import { createEmployeeProcedure } from "./routes/auth/create-employee/route";
+import { createEmployeeProcedure } from "./routes/auth/create-employee/index";
 import { getEmployeesProcedure } from "./routes/auth/get-employees/route";
 import { updateEmployeeProcedure } from "./routes/auth/update-employee/route";
 import { registerTenantProcedure } from "./routes/tenant/register/route";
@@ -17,6 +17,9 @@ import { calculateDistanceProcedure } from "./routes/requests/calculate-distance
 import { getMileageLogsProcedure } from "./routes/requests/get-mileage-logs/route";
 import { calculateRoundTripProcedure } from "./routes/requests/calculate-round-trip/route";
 
+console.log("Loading app-router module");
+
+
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
     hi: hiRoute,
@@ -27,6 +30,7 @@ export const appRouter = createTRPCRouter({
   auth: createTRPCRouter({
     login: loginProcedure,
     getAuditLogs: getAuditLogsProcedure,
+    // Procedure to create new employees/workers
     createEmployee: createEmployeeProcedure,
     getEmployees: getEmployeesProcedure,
     updateEmployee: updateEmployeeProcedure,
