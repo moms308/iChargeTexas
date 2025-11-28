@@ -16,8 +16,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useService } from "@/constants/serviceContext";
 import { useMessenger } from "@/constants/messengerContext";
 import colors from "@/constants/colors";
-import { Message, SystemUser, ServiceRequest } from "@/constants/types";
+import { Message, SystemUser, GeoCoordinates, JobAcceptanceLog } from "@/constants/types";
 import * as Haptics from "expo-haptics";
+import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   ArrowLeft,
@@ -26,13 +27,14 @@ import {
   UserPlus,
   CheckCircle,
   X,
+  MapPin,
 } from "lucide-react-native";
 
 export default function AssignmentDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { requests, addMessage, updateRequestAssignedStaff, updateRequestStatus } = useService();
+  const { requests, addMessage, updateRequestAssignedStaff, updateRequestStatus, addAcceptanceLog } = useService();
   const currentUser = null as SystemUser | null;
   const allUsers: SystemUser[] = [];
   const { addNotification } = useMessenger();
@@ -41,8 +43,11 @@ export default function AssignmentDetailScreen() {
   const [assignModalVisible, setAssignModalVisible] = useState<boolean>(false);
   const [selectedWorkerIds, setSelectedWorkerIds] = useState<string[]>([]);
   const [availableStaff, setAvailableStaff] = useState<SystemUser[]>([]);
+  const [isAccepting, setIsAccepting] = useState<boolean>(false);
+  const [acceptanceError, setAcceptanceError] = useState<string | null>(null);
 
   const assignment = requests.find((r) => r.id === id);
+  const acceptanceLogs = assignment?.acceptanceLogs ?? [];
 
   useEffect(() => {
     loadAvailableStaff();
@@ -52,7 +57,7 @@ export default function AssignmentDetailScreen() {
     if (assignment && assignment.assignedStaff) {
       setSelectedWorkerIds(assignment.assignedStaff);
     }
-  }, [assignment?.id]);
+  }, [assignment]);
 
   const loadAvailableStaff = async () => {
     try {
@@ -169,6 +174,130 @@ export default function AssignmentDetailScreen() {
     setAssignModalVisible(false);
   };
 
+  const getPlatformLabel = (): JobAcceptanceLog["platform"] => {
+    if (
+      Platform.OS === "ios" ||
+      Platform.OS === "android" ||
+      Platform.OS === "web" ||
+      Platform.OS === "macos" ||
+      Platform.OS === "windows"
+    ) {
+      return Platform.OS;
+    }
+    return "unknown";
+  };
+
+  const requestBrowserCoordinates = async (): Promise<GeoCoordinates> => {
+    console.log("[AssignmentDetail] Requesting browser coordinates for acceptance log");
+    return new Promise((resolve, reject) => {
+      const nav = (globalThis as typeof globalThis & { navigator?: Navigator }).navigator;
+      const geolocation = nav?.geolocation;
+      if (!geolocation) {
+        reject(new Error("Browser geolocation is unavailable."));
+        return;
+      }
+      geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy ?? null,
+          });
+        },
+        (error) => {
+          reject(new Error(error?.message || "Unable to capture browser location"));
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    });
+  };
+
+  const captureAcceptanceCoordinates = async (): Promise<GeoCoordinates> => {
+    if (Platform.OS === "web") {
+      return requestBrowserCoordinates();
+    }
+
+    const servicesEnabled = await Location.hasServicesEnabledAsync();
+    if (!servicesEnabled) {
+      throw new Error("Location services are disabled. Enable GPS to accept jobs.");
+    }
+
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      throw new Error("Location permission denied. Please grant access to capture acceptance logs.");
+    }
+
+    const snapshot = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.High,
+      timeInterval: 1000,
+      distanceInterval: 0,
+    });
+
+    return {
+      latitude: snapshot.coords.latitude,
+      longitude: snapshot.coords.longitude,
+      accuracy: snapshot.coords.accuracy ?? null,
+    };
+  };
+
+  const handleAcceptAssignment = async () => {
+    if (!assignment) {
+      return;
+    }
+
+    try {
+      setIsAccepting(true);
+      setAcceptanceError(null);
+      console.log("[AssignmentDetail] Starting acceptance flow for request:", assignment.id);
+      const coordinates = await captureAcceptanceCoordinates();
+      console.log("[AssignmentDetail] Coordinates captured:", coordinates);
+
+      const logEntry: JobAcceptanceLog = {
+        id: Date.now().toString(),
+        acceptedAt: new Date().toISOString(),
+        acceptedBy: currentUser
+          ? {
+              id: currentUser.id,
+              name: currentUser.fullName,
+              role: currentUser.role,
+            }
+          : undefined,
+        coordinates,
+        platform: getPlatformLabel(),
+      };
+
+      await addAcceptanceLog(assignment.id, logEntry);
+      updateRequestStatus(assignment.id, "scheduled");
+
+      const adminAndSuperAdminUsers = allUsers.filter(
+        (user) => user.role === 'admin' || user.role === 'super_admin'
+      );
+
+      for (const admin of adminAndSuperAdminUsers) {
+        await addNotification({
+          userId: admin.id,
+          type: 'task_assignment',
+          title: '✅ Assignment Accepted',
+          message: `${currentUser?.fullName || 'Staff member'} accepted: ${assignment.title} (${coordinates.latitude.toFixed(4)}, ${coordinates.longitude.toFixed(4)})`,
+          relatedId: assignment.id,
+        });
+      }
+
+      if (Platform.OS !== "web") {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+
+      Alert.alert('✅ Assignment Accepted', 'Location captured and logged successfully.');
+    } catch (error) {
+      console.error("[AssignmentDetail] Acceptance failed:", error);
+      const message = error instanceof Error ? error.message : "Unable to capture location";
+      setAcceptanceError(message);
+      Alert.alert("Location Required", message);
+    } finally {
+      setIsAccepting(false);
+    }
+  };
+
   if (!assignment) {
     return (
       <View style={styles.container}>
@@ -225,32 +354,19 @@ export default function AssignmentDetailScreen() {
           {currentUser && assignment.assignedStaff?.includes(currentUser.id) && assignment.status === 'pending' && (
             <View style={styles.actionButtons}>
               <TouchableOpacity
-                style={styles.acceptButton}
-                onPress={async () => {
-                  if (Platform.OS !== "web") {
-                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                  }
-                  updateRequestStatus(assignment.id, 'scheduled');
-                  
-                  const adminAndSuperAdminUsers = allUsers.filter(
-                    (user) => user.role === 'admin' || user.role === 'super_admin'
-                  );
-                  
-                  for (const admin of adminAndSuperAdminUsers) {
-                    await addNotification({
-                      userId: admin.id,
-                      type: 'task_assignment',
-                      title: '✅ Assignment Accepted',
-                      message: `${currentUser?.fullName || 'Staff member'} accepted: ${assignment.title}`,
-                      relatedId: assignment.id,
-                    });
-                  }
-                  
-                  Alert.alert('✅ Assignment Accepted', 'You have accepted this work order.');
-                }}
+                testID="accept-assignment-button"
+                style={[styles.acceptButton, isAccepting && styles.acceptButtonDisabled]}
+                onPress={handleAcceptAssignment}
+                disabled={isAccepting}
               >
-                <CheckCircle color={colors.white} size={18} />
-                <Text style={styles.acceptButtonText}>Accept</Text>
+                {isAccepting ? (
+                  <ActivityIndicator color={colors.white} size="small" />
+                ) : (
+                  <>
+                    <CheckCircle color={colors.white} size={18} />
+                    <Text style={styles.acceptButtonText}>Accept</Text>
+                  </>
+                )}
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.declineButton}
@@ -345,6 +461,44 @@ export default function AssignmentDetailScreen() {
             </View>
           </View>
         )}
+
+        <View style={styles.acceptanceLogCard} testID="acceptance-log-card">
+          <View style={styles.acceptanceLogHeader}>
+            <MapPin color={colors.primary} size={20} />
+            <Text style={styles.acceptanceLogTitle}>Acceptance Log</Text>
+          </View>
+          {acceptanceError && (
+            <Text style={styles.acceptanceErrorText}>{acceptanceError}</Text>
+          )}
+          {acceptanceLogs.length === 0 ? (
+            <Text style={styles.acceptanceLogEmpty}>No acceptance recorded yet.</Text>
+          ) : (
+            acceptanceLogs.map((log) => (
+              <View key={log.id} style={styles.acceptanceLogItem} testID={`acceptance-log-item-${log.id}`}>
+                <View style={styles.acceptanceLogRow}>
+                  <Text style={styles.acceptanceLogLabel}>Accepted</Text>
+                  <Text style={styles.acceptanceLogValue}>{new Date(log.acceptedAt).toLocaleString()}</Text>
+                </View>
+                <View style={styles.acceptanceLogRow}>
+                  <Text style={styles.acceptanceLogLabel}>Coordinates</Text>
+                  <Text style={styles.acceptanceLogValue}>
+                    {log.coordinates.latitude.toFixed(5)}°, {log.coordinates.longitude.toFixed(5)}°
+                  </Text>
+                </View>
+                {typeof log.coordinates.accuracy === "number" && (
+                  <Text style={styles.acceptanceLogMeta}>Accuracy ±{Math.round(log.coordinates.accuracy)}m</Text>
+                )}
+                {log.acceptedBy?.name ? (
+                  <Text style={styles.acceptanceLogMeta}>
+                    {log.acceptedBy.name} · {log.platform.toUpperCase()}
+                  </Text>
+                ) : (
+                  <Text style={styles.acceptanceLogMeta}>{log.platform.toUpperCase()}</Text>
+                )}
+              </View>
+            ))
+          )}
+        </View>
 
         <ScrollView
           style={styles.messagesScrollView}
@@ -952,10 +1106,70 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 6,
   },
+  acceptButtonDisabled: {
+    opacity: 0.6,
+  },
   acceptButtonText: {
     fontSize: 14,
     fontWeight: "700" as const,
     color: colors.white,
+  },
+  acceptanceLogCard: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    padding: 16,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: 12,
+  },
+  acceptanceLogHeader: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 8,
+  },
+  acceptanceLogTitle: {
+    fontSize: 16,
+    fontWeight: "700" as const,
+    color: colors.text,
+  },
+  acceptanceErrorText: {
+    fontSize: 13,
+    color: colors.error,
+  },
+  acceptanceLogEmpty: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  acceptanceLogItem: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    padding: 12,
+    gap: 8,
+    backgroundColor: colors.surfaceLight,
+  },
+  acceptanceLogRow: {
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
+    alignItems: "center" as const,
+  },
+  acceptanceLogLabel: {
+    fontSize: 12,
+    fontWeight: "600" as const,
+    color: colors.textSecondary,
+    textTransform: "uppercase" as const,
+  },
+  acceptanceLogValue: {
+    fontSize: 14,
+    fontWeight: "600" as const,
+    color: colors.text,
+  },
+  acceptanceLogMeta: {
+    fontSize: 12,
+    color: colors.textSecondary,
   },
   declineButton: {
     flexDirection: "row" as const,

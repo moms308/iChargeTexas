@@ -7,6 +7,24 @@ export interface Message {
   timestamp: string;
 }
 
+export interface GeoCoordinates {
+  latitude: number;
+  longitude: number;
+  accuracy?: number | null;
+}
+
+export interface JobAcceptanceLog {
+  id: string;
+  acceptedAt: string;
+  acceptedBy?: {
+    id?: string;
+    name?: string;
+    role?: UserRole;
+  };
+  coordinates: GeoCoordinates;
+  platform: "ios" | "android" | "web" | "windows" | "macos" | "unknown";
+}
+
 export interface ServiceRequest {
   id: string;
   tenantId?: string;
@@ -44,6 +62,7 @@ export interface ServiceRequest {
   deleteReason?: string;
   assignedStaff?: string[];
   photos?: string[];
+  acceptanceLogs?: JobAcceptanceLog[];
 }
 
 export interface ArchivedRequest extends ServiceRequest {

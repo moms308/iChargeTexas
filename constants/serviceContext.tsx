@@ -2,7 +2,7 @@ import createContextHook from "@nkzw/create-context-hook";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ServiceRequest, Message, AppError, ArchivedRequest } from "./types";
+import { ServiceRequest, Message, AppError, ArchivedRequest, JobAcceptanceLog } from "./types";
 import { Platform, Alert } from "react-native";
 import { roadsideServices, calculateServicePrice, isAfterHours } from "./serviceData";
 
@@ -474,8 +474,24 @@ export const [ServiceContext, useService] = createContextHook(() => {
     if (updatedRequest) {
       archiveRequest(updatedRequest);
     }
+  }, [requests, saveMutate, archiveRequest]);
 
+  const addAcceptanceLog = useCallback(async (
+    requestId: string,
+    log: JobAcceptanceLog
+  ) => {
+    const updated = requests.map((req) =>
+      req.id === requestId
+        ? { ...req, acceptanceLogs: [log, ...(req.acceptanceLogs || [])] }
+        : req
+    );
+    setRequests(updated);
+    saveMutate(updated);
 
+    const updatedRequest = updated.find(r => r.id === requestId);
+    if (updatedRequest) {
+      archiveRequest(updatedRequest);
+    }
   }, [requests, saveMutate, archiveRequest]);
 
   const addPhoto = useCallback(async (
@@ -619,5 +635,6 @@ export const [ServiceContext, useService] = createContextHook(() => {
     lastErrorReset,
     addPhoto,
     removePhoto,
-  }), [requests, archivedRequests, addRequest, updateRequestStatus, updateRequestNote, updateRequestReason, deleteRequest, clearPastRequests, addMessage, updateRequestAddress, updateRequestAssignedStaff, archiveRequest, deleteArchivedRequest, createTestInvoice, requestsQuery.isLoading, archivedRequestsQuery.isLoading, isSaving, errors, trackError, resetErrors, lastErrorReset, addPhoto, removePhoto]);
+    addAcceptanceLog,
+  }), [requests, archivedRequests, addRequest, updateRequestStatus, updateRequestNote, updateRequestReason, deleteRequest, clearPastRequests, addMessage, updateRequestAddress, updateRequestAssignedStaff, archiveRequest, deleteArchivedRequest, createTestInvoice, requestsQuery.isLoading, archivedRequestsQuery.isLoading, isSaving, errors, trackError, resetErrors, lastErrorReset, addPhoto, removePhoto, addAcceptanceLog]);
 });
