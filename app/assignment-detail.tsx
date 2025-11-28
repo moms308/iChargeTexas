@@ -237,17 +237,29 @@ export default function AssignmentDetailScreen() {
       throw new Error("Location permission denied. Please grant access to capture acceptance logs.");
     }
 
+    console.log("[AssignmentDetail] Requesting high accuracy GPS coordinates...");
     const snapshot = await Location.getCurrentPositionAsync({
       accuracy: Location.Accuracy.High,
       timeInterval: 1000,
       distanceInterval: 0,
     });
 
-    return {
+    const coords = {
       latitude: snapshot.coords.latitude,
       longitude: snapshot.coords.longitude,
       accuracy: snapshot.coords.accuracy ?? null,
     };
+
+    if (!coords.latitude || !coords.longitude) {
+      throw new Error("Invalid GPS coordinates received. Please try again.");
+    }
+
+    if (Math.abs(coords.latitude) > 90 || Math.abs(coords.longitude) > 180) {
+      throw new Error("GPS coordinates out of valid range. Please try again.");
+    }
+
+    console.log(`[AssignmentDetail] GPS coordinates captured: ${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)}, accuracy: ${coords.accuracy}m`);
+    return coords;
   };
 
   const handleAcceptAssignment = async () => {
@@ -276,7 +288,10 @@ export default function AssignmentDetailScreen() {
         platform: getPlatformLabel(),
       };
 
+      console.log("[AssignmentDetail] Adding acceptance log to storage...");
       await addAcceptanceLog(assignment.id, logEntry);
+      
+      console.log("[AssignmentDetail] Updating request status to scheduled...");
       updateRequestStatus(assignment.id, "scheduled");
 
       const adminAndSuperAdminUsers = allUsers.filter(

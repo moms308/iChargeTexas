@@ -27,10 +27,10 @@ function calculateHaversineDistance(
 export const calculateDistanceProcedure = publicProcedure
   .input(
     z.object({
-      requestId: z.string(),
+      requestId: z.string().min(1, "Request ID is required"),
       acceptorCoordinates: z.object({
-        latitude: z.number(),
-        longitude: z.number(),
+        latitude: z.number().min(-90).max(90),
+        longitude: z.number().min(-180).max(180),
       }),
       tenantId: z.string().optional(),
     })
@@ -39,25 +39,44 @@ export const calculateDistanceProcedure = publicProcedure
     console.log(
       `[Calculate Distance] Processing for request ${input.requestId}`
     );
+    console.log(
+      `[Calculate Distance] Acceptor coordinates: ${input.acceptorCoordinates.latitude.toFixed(6)}, ${input.acceptorCoordinates.longitude.toFixed(6)}`
+    );
 
     const storageKey = input.tenantId
       ? `tenant:${input.tenantId}:requests`
       : "service_requests";
 
+    console.log(`[Calculate Distance] Fetching from storage key: ${storageKey}`);
     const requests = (await ctx.kv.getJSON<any[]>(storageKey)) || [];
     const request = requests.find((r) => r.id === input.requestId);
 
     if (!request) {
-      console.error(`[Calculate Distance] Request ${input.requestId} not found`);
+      console.error(`[Calculate Distance] Request ${input.requestId} not found in ${requests.length} requests`);
       throw new Error("Request not found");
     }
 
     if (!request.location || typeof request.location.latitude !== "number" || typeof request.location.longitude !== "number") {
       console.error(
-        `[Calculate Distance] Invalid request location for ${input.requestId}`
+        `[Calculate Distance] Invalid request location for ${input.requestId}:`,
+        request.location
       );
       throw new Error("Invalid request location data");
     }
+
+    if (
+      Math.abs(request.location.latitude) > 90 ||
+      Math.abs(request.location.longitude) > 180
+    ) {
+      console.error(
+        `[Calculate Distance] Request coordinates out of range: ${request.location.latitude}, ${request.location.longitude}`
+      );
+      throw new Error("Request coordinates are out of valid range");
+    }
+
+    console.log(
+      `[Calculate Distance] Request location: ${request.location.latitude.toFixed(6)}, ${request.location.longitude.toFixed(6)}`
+    );
 
     const distanceInKm = calculateHaversineDistance(
       request.location.latitude,
@@ -69,7 +88,7 @@ export const calculateDistanceProcedure = publicProcedure
     const distanceInMiles = distanceInKm * 0.621371;
 
     console.log(
-      `[Calculate Distance] Distance calculated: ${distanceInKm.toFixed(2)} km (${distanceInMiles.toFixed(2)} miles)`
+      `[Calculate Distance] ✅ Distance calculated: ${distanceInKm.toFixed(2)} km (${distanceInMiles.toFixed(2)} miles)`
     );
 
     return {

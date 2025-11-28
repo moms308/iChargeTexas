@@ -12,6 +12,7 @@ import {
   Alert,
   ActivityIndicator,
   Linking,
+  TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -53,10 +54,16 @@ function calculateHaversineDistance(
   return distance;
 }
 
+type SortOption = "date" | "distance" | "customer" | "status";
+type FilterOption = "all" | "completed" | "scheduled" | "pending";
+
 export default function MileageLogsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>("date");
+  const [filterBy, setFilterBy] = useState<FilterOption>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const { data, isLoading, error, refetch } = trpc.requests.getMileageLogs.useQuery({});
 
@@ -147,7 +154,54 @@ export default function MileageLogsScreen() {
     );
   }
 
-  const mileageLogs = data?.mileageLogs || [];
+  let mileageLogs = data?.mileageLogs || [];
+
+  if (filterBy !== "all") {
+    mileageLogs = mileageLogs.filter((log) => log.status === filterBy);
+  }
+
+  if (searchQuery.trim()) {
+    const query = searchQuery.toLowerCase();
+    mileageLogs = mileageLogs.filter(
+      (log) =>
+        log.requestTitle.toLowerCase().includes(query) ||
+        log.customerName.toLowerCase().includes(query)
+    );
+  }
+
+  mileageLogs = [...mileageLogs].sort((a, b) => {
+    const aLatestLog = a.acceptanceLogs[a.acceptanceLogs.length - 1];
+    const bLatestLog = b.acceptanceLogs[b.acceptanceLogs.length - 1];
+
+    switch (sortBy) {
+      case "date":
+        return (
+          new Date(bLatestLog.acceptedAt).getTime() -
+          new Date(aLatestLog.acceptedAt).getTime()
+        );
+      case "distance": {
+        const aDistance = calculateHaversineDistance(
+          a.requestLocation.latitude,
+          a.requestLocation.longitude,
+          aLatestLog.coordinates.latitude,
+          aLatestLog.coordinates.longitude
+        );
+        const bDistance = calculateHaversineDistance(
+          b.requestLocation.latitude,
+          b.requestLocation.longitude,
+          bLatestLog.coordinates.latitude,
+          bLatestLog.coordinates.longitude
+        );
+        return bDistance - aDistance;
+      }
+      case "customer":
+        return a.customerName.localeCompare(b.customerName);
+      case "status":
+        return a.status.localeCompare(b.status);
+      default:
+        return 0;
+    }
+  });
 
   return (
     <View style={styles.container}>
@@ -169,15 +223,77 @@ export default function MileageLogsScreen() {
           </View>
           <View style={styles.statCard}>
             <Text style={[styles.statValue, { color: colors.success }]}>
-              {mileageLogs.filter((log) => log.status === "completed").length}
+              {(data?.mileageLogs || []).filter((log) => log.status === "completed").length}
             </Text>
             <Text style={styles.statLabel}>Completed</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={[styles.statValue, { color: colors.warning }]}>
-              {mileageLogs.filter((log) => log.status === "pending" || log.status === "scheduled").length}
+              {(data?.mileageLogs || []).filter((log) => log.status === "pending" || log.status === "scheduled").length}
             </Text>
             <Text style={styles.statLabel}>Active</Text>
+          </View>
+        </View>
+
+        <View style={styles.filtersContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by customer or title..."
+            placeholderTextColor={colors.textTertiary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          
+          <View style={styles.filterRow}>
+            <View style={styles.filterGroup}>
+              <Text style={styles.filterLabel}>Filter:</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
+                {(["all", "completed", "scheduled", "pending"] as FilterOption[]).map((filter) => (
+                  <TouchableOpacity
+                    key={filter}
+                    style={[styles.filterChip, filterBy === filter && styles.filterChipActive]}
+                    onPress={() => setFilterBy(filter)}
+                  >
+                    <Text
+                      style={[
+                        styles.filterChipText,
+                        filterBy === filter && styles.filterChipTextActive,
+                      ]}
+                    >
+                      {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            <View style={styles.filterGroup}>
+              <Text style={styles.filterLabel}>Sort:</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
+                {(["date", "distance", "customer", "status"] as SortOption[]).map((sort) => (
+                  <TouchableOpacity
+                    key={sort}
+                    style={[styles.filterChip, sortBy === sort && styles.filterChipActive]}
+                    onPress={() => setSortBy(sort)}
+                  >
+                    <Text
+                      style={[
+                        styles.filterChipText,
+                        sortBy === sort && styles.filterChipTextActive,
+                      ]}
+                    >
+                      {sort.charAt(0).toUpperCase() + sort.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+
+          <View style={styles.resultsInfo}>
+            <Text style={styles.resultsText}>
+              Showing {mileageLogs.length} of {data?.total || 0} logs
+            </Text>
           </View>
         </View>
 
@@ -827,5 +943,67 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700" as const,
     color: colors.success,
+  },
+  filtersContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    gap: 12,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  searchInput: {
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: colors.text,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  filterRow: {
+    gap: 12,
+  },
+  filterGroup: {
+    gap: 8,
+  },
+  filterLabel: {
+    fontSize: 12,
+    fontWeight: "700" as const,
+    color: colors.textSecondary,
+    textTransform: "uppercase" as const,
+  },
+  filterScroll: {
+    flexGrow: 0,
+  },
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: colors.background,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginRight: 8,
+  },
+  filterChipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontWeight: "600" as const,
+    color: colors.textSecondary,
+  },
+  filterChipTextActive: {
+    color: colors.white,
+  },
+  resultsInfo: {
+    paddingTop: 4,
+  },
+  resultsText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontStyle: "italic" as const,
   },
 });
