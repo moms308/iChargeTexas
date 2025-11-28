@@ -88,6 +88,7 @@ export type UserRole = "super_admin" | "admin" | "worker" | "user";
 
 export interface SystemUser {
   id: string;
+  employeeId: string;
   username: string;
   password: string;
   role: UserRole;

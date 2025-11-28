@@ -38,6 +38,7 @@ export const [AuthContext, useAuth] = createContextHook(() => {
   const login = useCallback(async (username: string, password: string, tenantIdInput?: string): Promise<boolean> => {
     const SUPER_ADMIN = {
       id: "super_admin_001",
+      employeeId: "000000",
       username: "Moms308",
       password: "Wowcows123!123!",
       role: "super_admin" as const,

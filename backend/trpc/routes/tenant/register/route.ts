@@ -110,6 +110,7 @@ export const registerTenantProcedure = publicProcedure
 
     const adminUser: SystemUser = {
       id: generateId("user"),
+      employeeId: "000001",
       username: input.adminUsername,
       password: await hashPassword(input.adminPassword),
       role: "admin",

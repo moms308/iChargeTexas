@@ -23,6 +23,7 @@ import {
   UserPlus,
   Key,
   Copy,
+  Hash,
 } from "lucide-react-native";
 import * as Clipboard from "expo-clipboard";
 import React, { useState } from "react";
@@ -400,7 +401,13 @@ export default function UserManagementScreen() {
                       </View>
                       <View style={styles.userTextContainer}>
                         <Text style={styles.userName}>{user.fullName}</Text>
-                        <Text style={styles.userUsername}>@{user.username}</Text>
+                        <View style={styles.userMetaRow}>
+                          <Text style={styles.userUsername}>@{user.username}</Text>
+                          <View style={styles.employeeIdBadge}>
+                            <Hash size={10} color={colors.textTertiary} />
+                            <Text style={styles.employeeIdText}>{user.employeeId}</Text>
+                          </View>
+                        </View>
                       </View>
                     </View>
                     <View
@@ -585,6 +592,10 @@ export default function UserManagementScreen() {
                       </View>
                       <Text style={styles.permissionsOnlyName}>{selectedUser.fullName}</Text>
                       <Text style={styles.permissionsOnlyUsername}>@{selectedUser.username}</Text>
+                      <View style={styles.viewEmployeeIdContainer}>
+                        <Hash size={14} color={colors.textSecondary} />
+                        <Text style={styles.viewEmployeeId}>Employee ID: {selectedUser.employeeId}</Text>
+                      </View>
                       <View
                         style={[
                           styles.viewRoleBadge,
@@ -637,6 +648,10 @@ export default function UserManagementScreen() {
                       </View>
                       <Text style={styles.viewName}>{selectedUser.fullName}</Text>
                       <Text style={styles.viewUsername}>@{selectedUser.username}</Text>
+                      <View style={styles.viewEmployeeIdContainer}>
+                        <Hash size={14} color={colors.textSecondary} />
+                        <Text style={styles.viewEmployeeId}>Employee ID: {selectedUser.employeeId}</Text>
+                      </View>
                       <View
                         style={[
                           styles.viewRoleBadge,
@@ -1020,6 +1035,25 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
   },
+  userMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  employeeIdBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    backgroundColor: colors.surfaceLight,
+    borderRadius: 6,
+  },
+  employeeIdText: {
+    fontSize: 10,
+    color: colors.textTertiary,
+    fontWeight: "600" as const,
+  },
   roleBadge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -1311,7 +1345,18 @@ const styles = StyleSheet.create({
   viewUsername: {
     fontSize: 16,
     color: colors.textSecondary,
+    marginBottom: 8,
+  },
+  viewEmployeeIdContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
     marginBottom: 12,
+  },
+  viewEmployeeId: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: "500" as const,
   },
   viewRoleBadge: {
     paddingHorizontal: 16,
@@ -1373,7 +1418,7 @@ const styles = StyleSheet.create({
   permissionsOnlyUsername: {
     fontSize: 14,
     color: colors.textSecondary,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   credentialsContainer: {
     padding: 24,

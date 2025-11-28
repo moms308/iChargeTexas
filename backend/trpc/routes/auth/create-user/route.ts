@@ -7,6 +7,7 @@ const SUPER_ADMIN_ID = "super_admin_001";
 
 interface Employee {
   id: string;
+  employeeId: string;
   username: string;
   passwordHash: string;
   role: "admin" | "worker" | "employee" | "super_admin";
@@ -119,8 +120,12 @@ export const createUserProcedure = protectedProcedure
 
     const normalizedRole = input.role === "employee" ? "worker" : input.role;
 
+    const nextEmployeeNumber = existingUsers.length + 1;
+    const employeeId = nextEmployeeNumber.toString().padStart(6, '0');
+
     const newEmployee: Employee = {
       id: `emp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      employeeId: employeeId,
       username: input.username,
       passwordHash: await hashPassword(input.password),
       role: normalizedRole,
@@ -159,6 +164,7 @@ export const createUserProcedure = protectedProcedure
       success: true,
       employee: {
         id: newEmployee.id,
+        employeeId: newEmployee.employeeId,
         username: newEmployee.username,
         role: newEmployee.role,
         fullName: newEmployee.fullName,

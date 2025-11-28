@@ -3,6 +3,7 @@ import { kv } from "../../../../storage";
 
 interface Employee {
   id: string;
+  employeeId?: string;
   username: string;
   passwordHash: string;
   role: "admin" | "employee";
@@ -44,6 +45,7 @@ export const getEmployeesProcedure = protectedProcedure.query(async ({ ctx }) =>
   
   const employeesWithoutPasswords = employees.map(({ passwordHash, ...employee }) => ({
     ...employee,
+    employeeId: employee.employeeId || 'N/A',
     permissions: employee.permissions || {
       canManageUsers: false,
       canViewReports: true,
