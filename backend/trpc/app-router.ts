@@ -3,10 +3,12 @@ import hiRoute from "./routes/example/hi/route";
 import { createInvoiceProcedure } from "./routes/stripe/create-invoice/route";
 import { loginProcedure } from "./routes/auth/login/route";
 import { getAuditLogsProcedure } from "./routes/auth/get-audit-logs/route";
-import { createUserProcedure } from "./routes/auth/create-user/route";
-import { getCredentialLogsProcedure } from "./routes/auth/get-credentials/route";
-import { getEmployeesProcedure } from "./routes/auth/get-employees/route";
-import { updateEmployeeProcedure } from "./routes/auth/update-employee/route";
+import {
+  createEmployeeProcedure,
+  getEmployeesProcedure,
+  updateEmployeeProcedure,
+  getCredentialLogsProcedure,
+} from "./routes/users/employees";
 import { registerTenantProcedure } from "./routes/tenant/register/route";
 import { getTenantProcedure } from "./routes/tenant/get-tenant/route";
 import { listTenantsProcedure } from "./routes/tenant/list-tenants/route";
@@ -31,7 +33,7 @@ export const appRouter = createTRPCRouter({
   auth: createTRPCRouter({
     login: loginProcedure,
     getAuditLogs: getAuditLogsProcedure,
-    createEmployee: createUserProcedure,
+    createEmployee: createEmployeeProcedure,
     getCredentialLogs: getCredentialLogsProcedure,
     getEmployees: getEmployeesProcedure,
     updateEmployee: updateEmployeeProcedure,
@@ -57,6 +59,6 @@ export const appRouter = createTRPCRouter({
   }),
 });
 
-console.log("[Router] App router created with procedures: auth (login, getAuditLogs, createEmployee, getCredentialLogs, getEmployees, updateEmployee)");
+console.log("[Router] App router initialized successfully");
 
 export type AppRouter = typeof appRouter;
