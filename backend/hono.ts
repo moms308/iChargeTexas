@@ -19,6 +19,7 @@ app.use("*", cors({
 // Log all incoming requests for debugging
 app.use("*", async (c, next) => {
   console.log(`[Hono Incoming] ${c.req.method} ${c.req.path}`);
+  console.log(`[Hono Incoming] Full URL: ${c.req.url}`);
   await next();
 });
 
@@ -146,19 +147,22 @@ console.log("[Hono] Setting up tRPC middleware");
 // Handle tRPC requests at /api/trpc with both POST and GET
 app.all(
   "/api/trpc/*",
-  trpcServer({
-    router: appRouter,
-    createContext,
-    onError({ error, type, path, input, ctx, req }) {
-      console.error("[tRPC Error]", {
-        type,
-        path,
-        error: error.message,
-        code: error.code,
-        stack: error.stack,
-      });
-    },
-  })
+  async (c, next) => {
+    console.log(`[tRPC Middleware] Handling request: ${c.req.method} ${c.req.path}`);
+    return trpcServer({
+      router: appRouter,
+      createContext,
+      onError({ error, type, path, input, ctx, req }) {
+        console.error("[tRPC Error]", {
+          type,
+          path,
+          error: error.message,
+          code: error.code,
+          stack: error.stack,
+        });
+      },
+    })(c, next);
+  }
 );
 
 console.log("[Hono] tRPC middleware configured at /api/trpc/*");

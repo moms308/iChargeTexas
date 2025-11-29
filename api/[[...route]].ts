@@ -9,6 +9,7 @@ export const config = {
 const handler = async (req: Request) => {
   const url = new URL(req.url);
   console.log(`[API Route Handler] ${req.method} ${url.pathname}`);
+  console.log(`[API Route Handler] Full URL: ${req.url}`);
   
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -23,7 +24,21 @@ const handler = async (req: Request) => {
   }
   
   try {
-    const response = await app.fetch(req);
+    // Ensure path starts with /api for Hono routing
+    let modifiedReq = req;
+    if (!url.pathname.startsWith('/api')) {
+      const newUrl = new URL(`/api${url.pathname}`, url.origin);
+      newUrl.search = url.search;
+      console.log(`[API Route Handler] Modified URL: ${newUrl.toString()}`);
+      modifiedReq = new Request(newUrl.toString(), {
+        method: req.method,
+        headers: req.headers,
+        body: req.body,
+        redirect: req.redirect,
+      });
+    }
+    
+    const response = await app.fetch(modifiedReq);
     console.log(`[API Route Handler] Response status: ${response.status}`);
     
     const newHeaders = new Headers(response.headers);
