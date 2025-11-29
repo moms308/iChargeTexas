@@ -12,7 +12,7 @@ import { AuthContext } from "@/constants/authContext";
 import { ThemeContext } from "@/constants/themeContext";
 import { StatusBar } from "expo-status-bar";
 import { LogBox } from "react-native";
-import { trpc, trpcClient } from "@/lib/trpc";
+import { trpc, trpcReactClient } from "@/lib/trpc";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -55,7 +55,7 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+    <trpc.Provider client={trpcReactClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <AuthContext>
           <ThemeContext>

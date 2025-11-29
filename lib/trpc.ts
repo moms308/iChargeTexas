@@ -23,77 +23,83 @@ const getBaseUrl = () => {
   return "http://localhost:3000";
 };
 
-export const trpcClient = createTRPCClient<AppRouter>({
-  links: [
-    loggerLink({
-      enabled: (opts) =>
-        process.env.NODE_ENV === "development" ||
-        (opts.direction === "down" && opts.result instanceof Error),
-    }),
-    httpLink({
-      transformer: superjson,
-      url: `${getBaseUrl()}/api/trpc`,
-      async headers() {
-        const headers: Record<string, string> = {};
-        
-        try {
-          const storedUser = await AsyncStorage.getItem("@current_user");
-          if (storedUser && storedUser !== "null" && storedUser !== "undefined") {
-            try {
-              const user = JSON.parse(storedUser);
-              headers.authorization = `Bearer ${user.id}`;
-            } catch (e) {
-              console.error("[tRPC] Error parsing stored user:", e);
-            }
-          }
-          
-          const tenantId = await AsyncStorage.getItem("@current_tenant_id");
-          if (tenantId && tenantId !== "null" && tenantId !== "undefined") {
-            headers["x-tenant-id"] = tenantId;
-          }
-        } catch (e) {
-          console.log("[tRPC] AsyncStorage not available, skipping headers");
-        }
-        
-        return headers;
-      },
-      async fetch(url, options) {
-        const response = await fetch(url, options);
-        
-        if (!response.ok) {
-          const text = await response.text();
-          console.error(`[tRPC Client] HTTP Error ${response.status} ${response.statusText}`);
-          console.error(`[tRPC Client] URL: ${url}`);
-          console.error(`[tRPC Client] Body: ${text.substring(0, 1000)}`);
-          
-          let errorMessage = `HTTP Error ${response.status}`;
+const trpcLinks = [
+  loggerLink({
+    enabled: (opts) =>
+      process.env.NODE_ENV === "development" ||
+      (opts.direction === "down" && opts.result instanceof Error),
+  }),
+  httpLink({
+    transformer: superjson,
+    url: `${getBaseUrl()}/api/trpc`,
+    async headers() {
+      const headers: Record<string, string> = {};
+      
+      try {
+        const storedUser = await AsyncStorage.getItem("@current_user");
+        if (storedUser && storedUser !== "null" && storedUser !== "undefined") {
           try {
-            const jsonError = JSON.parse(text);
-            errorMessage = jsonError.error?.message || jsonError.message || errorMessage;
-          } catch {
-            errorMessage = text || errorMessage;
+            const user = JSON.parse(storedUser);
+            headers.authorization = `Bearer ${user.id}`;
+          } catch (e) {
+            console.error("[tRPC] Error parsing stored user:", e);
           }
-          
-          const errorResponse = new Response(
-            JSON.stringify({
-              error: {
-                message: errorMessage,
-                code: "HTTP_ERROR",
-                data: {
-                  httpStatus: response.status,
-                },
-              },
-            }),
-            {
-              status: response.status,
-              headers: { "Content-Type": "application/json" },
-            }
-          );
-          return errorResponse;
         }
         
-        return response;
-      },
-    }),
-  ],
+        const tenantId = await AsyncStorage.getItem("@current_tenant_id");
+        if (tenantId && tenantId !== "null" && tenantId !== "undefined") {
+          headers["x-tenant-id"] = tenantId;
+        }
+      } catch (e) {
+        console.log("[tRPC] AsyncStorage not available, skipping headers");
+      }
+      
+      return headers;
+    },
+    async fetch(url, options) {
+      const response = await fetch(url, options);
+      
+      if (!response.ok) {
+        const text = await response.text();
+        console.error(`[tRPC Client] HTTP Error ${response.status}`);
+        console.error(`[tRPC Client] URL: ${url}`);
+        console.error(`[tRPC Client] Body: ${text.substring(0, 500)}`);
+        
+        let errorMessage = `HTTP Error ${response.status}`;
+        try {
+          const jsonError = JSON.parse(text);
+          errorMessage = jsonError.error?.message || jsonError.message || errorMessage;
+        } catch {
+          errorMessage = text || errorMessage;
+        }
+        
+        const errorResponse = new Response(
+          JSON.stringify({
+            error: {
+              message: errorMessage,
+              code: "HTTP_ERROR",
+              data: {
+                httpStatus: response.status,
+              },
+            },
+          }),
+          {
+            status: response.status,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        return errorResponse;
+      }
+      
+      return response;
+    },
+  }),
+];
+
+export const trpcReactClient = trpc.createClient({
+  links: trpcLinks,
+});
+
+export const trpcClient = createTRPCClient<AppRouter>({
+  links: trpcLinks,
 });
