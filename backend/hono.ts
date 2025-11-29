@@ -139,11 +139,13 @@ try {
   const procedures = appRouter._def.procedures as any;
   console.log("[Hono] Top-level procedures:", Object.keys(procedures));
   
-  if (procedures.auth) {
-    console.log("[Hono] Auth router type:", typeof procedures.auth);
-    console.log("[Hono] Auth router has _def:", !!procedures.auth._def);
-    if (procedures.auth._def) {
-      console.log("[Hono] Auth procedures:", Object.keys(procedures.auth._def.procedures || {}));
+  // Log each router's procedures
+  for (const [key, value] of Object.entries(procedures)) {
+    if (value && typeof value === 'object' && '_def' in value) {
+      const router = value as any;
+      if (router._def && router._def.procedures) {
+        console.log(`[Hono] ${key} procedures:`, Object.keys(router._def.procedures));
+      }
     }
   }
 } catch (e) {
@@ -187,16 +189,23 @@ app.get("/api/health", (c) => {
 });
 
 app.get("/api/debug/routes", (c) => {
-  const authProcedures = Object.keys((appRouter._def.procedures as any).auth?._def?.procedures || {});
-  return c.json({
+  const procedures = appRouter._def.procedures as any;
+  const debugInfo: Record<string, any> = {
     status: "ok",
-    routes: {
-      auth: authProcedures,
-      example: Object.keys((appRouter._def.procedures as any).example?._def?.procedures || {}),
-      stripe: Object.keys((appRouter._def.procedures as any).stripe?._def?.procedures || {}),
-    },
     timestamp: new Date().toISOString(),
-  });
+    routes: {},
+  };
+  
+  for (const [key, value] of Object.entries(procedures)) {
+    if (value && typeof value === 'object' && '_def' in value) {
+      const router = value as any;
+      if (router._def && router._def.procedures) {
+        debugInfo.routes[key] = Object.keys(router._def.procedures);
+      }
+    }
+  }
+  
+  return c.json(debugInfo);
 });
 
 app.notFound((c) => {
