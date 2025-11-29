@@ -82,4 +82,7 @@ console.log("[Router] Full app router structure:", JSON.stringify({
   requests: Object.keys(requestsRouter._def.procedures),
 }, null, 2));
 
+console.log("[Router] auth.getEmployees exists:", typeof authRouter._def.procedures.getEmployees !== 'undefined');
+console.log("[Router] auth.getCredentialLogs exists:", typeof authRouter._def.procedures.getCredentialLogs !== 'undefined');
+
 export type AppRouter = typeof appRouter;

@@ -135,8 +135,20 @@ app.onError((err, c) => {
 });
 
 // Log available tRPC procedures
-const authProcedures = Object.keys((appRouter._def.procedures as any).auth?._def?.procedures || {});
-console.log("[Hono] Auth procedures available:", authProcedures);
+try {
+  const procedures = appRouter._def.procedures as any;
+  console.log("[Hono] Top-level procedures:", Object.keys(procedures));
+  
+  if (procedures.auth) {
+    console.log("[Hono] Auth router type:", typeof procedures.auth);
+    console.log("[Hono] Auth router has _def:", !!procedures.auth._def);
+    if (procedures.auth._def) {
+      console.log("[Hono] Auth procedures:", Object.keys(procedures.auth._def.procedures || {}));
+    }
+  }
+} catch (e) {
+  console.error("[Hono] Error logging procedures:", e);
+}
 
 // Handle tRPC requests at /api/trpc
 app.use(
