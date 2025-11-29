@@ -145,27 +145,37 @@ app.onError((err, c) => {
 console.log("[Hono] Setting up tRPC middleware");
 console.log("[Hono] AppRouter loaded with routes:", Object.keys(appRouter._def?.procedures || {}));
 
-// Handle tRPC requests at /api/trpc with both POST and GET
-app.all(
-  "/api/trpc/*",
-  async (c, next) => {
-    console.log(`[tRPC Middleware] Handling request: ${c.req.method} ${c.req.path}`);
-    console.log(`[tRPC Middleware] Query: ${c.req.url}`);
-    return trpcServer({
-      router: appRouter,
-      createContext,
-      onError({ error, type, path, input, ctx, req }) {
-        console.error("[tRPC Error]", {
-          type,
-          path,
-          error: error.message,
-          code: error.code,
-          stack: error.stack,
-        });
-      },
-    })(c, next);
+const procedures = appRouter._def.procedures as any;
+for (const [key, value] of Object.entries(procedures)) {
+  if (value && typeof value === 'object' && '_def' in value) {
+    const router = value as any;
+    if (router._def && router._def.procedures) {
+      console.log(`[Hono] Router '${key}' has procedures:`, Object.keys(router._def.procedures));
+    }
   }
-);
+}
+
+// Handle tRPC requests at /api/trpc with both POST and GET
+const trpcHandler = trpcServer({
+  router: appRouter,
+  createContext,
+  onError({ error, type, path, input, ctx, req }) {
+    console.error("[tRPC Error]", {
+      type,
+      path,
+      error: error.message,
+      code: error.code,
+      stack: error.stack,
+    });
+  },
+});
+
+app.use("/api/trpc/*", async (c, next) => {
+  console.log(`[tRPC Middleware] Handling request: ${c.req.method} ${c.req.path}`);
+  console.log(`[tRPC Middleware] Full URL: ${c.req.url}`);
+  console.log(`[tRPC Middleware] Content-Type: ${c.req.header('content-type')}`);
+  return trpcHandler(c, next);
+});
 
 console.log("[Hono] tRPC middleware configured at /api/trpc/*");
 
