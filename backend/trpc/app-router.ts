@@ -57,6 +57,6 @@ export const appRouter = createTRPCRouter({
   }),
 });
 
-console.log("[Router] App router created successfully");
+console.log("[Router] App router created successfully with auth routes: login, getAuditLogs, createEmployee, getCredentialLogs, getEmployees, updateEmployee");
 
 export type AppRouter = typeof appRouter;

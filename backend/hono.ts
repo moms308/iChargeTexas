@@ -136,8 +136,8 @@ app.onError((err, c) => {
 
 console.log("[Hono] Setting up tRPC middleware");
 
-// Handle tRPC requests at /api/trpc
-app.use(
+// Handle tRPC requests at /api/trpc with both POST and GET
+app.all(
   "/api/trpc/*",
   trpcServer({
     router: appRouter,
