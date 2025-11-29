@@ -4,7 +4,16 @@
   "installCommand": "bun install",
   "buildCommand": "bunx expo export -p web",
   "outputDirectory": "dist",
+  "functions": {
+    "api/[[...route]].ts": {
+      "runtime": "edge"
+    }
+  },
   "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    },
     {
       "source": "/((?!api).*)",
       "destination": "/index.html"

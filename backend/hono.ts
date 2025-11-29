@@ -134,23 +134,7 @@ app.onError((err, c) => {
   );
 });
 
-// Log available tRPC procedures
-try {
-  const procedures = appRouter._def.procedures as any;
-  console.log("[Hono] Top-level procedures:", Object.keys(procedures));
-  
-  // Log each router's procedures
-  for (const [key, value] of Object.entries(procedures)) {
-    if (value && typeof value === 'object' && '_def' in value) {
-      const router = value as any;
-      if (router._def && router._def.procedures) {
-        console.log(`[Hono] ${key} procedures:`, Object.keys(router._def.procedures));
-      }
-    }
-  }
-} catch (e) {
-  console.error("[Hono] Error logging procedures:", e);
-}
+console.log("[Hono] Setting up tRPC middleware");
 
 // Handle tRPC requests at /api/trpc
 app.use(

@@ -21,68 +21,42 @@ import { createTestJobProcedure } from "./routes/requests/create-test-job/route"
 import { acceptJobProcedure } from "./routes/requests/accept-job/route";
 import { postMileageLogProcedure } from "./routes/requests/post-mileage-log/route";
 
-const exampleRouter = createTRPCRouter({
-  hi: hiRoute,
-});
-
-const stripeRouter = createTRPCRouter({
-  createInvoice: createInvoiceProcedure,
-});
-
-const authRouter = createTRPCRouter({
-  login: loginProcedure,
-  getAuditLogs: getAuditLogsProcedure,
-  createEmployee: createUserProcedure,
-  getCredentialLogs: getCredentialLogsProcedure,
-  getEmployees: getEmployeesProcedure,
-  updateEmployee: updateEmployeeProcedure,
-});
-
-const tenantRouter = createTRPCRouter({
-  register: registerTenantProcedure,
-  getTenant: getTenantProcedure,
-  listTenants: listTenantsProcedure,
-  updateTenant: updateTenantProcedure,
-});
-
-const billingRouter = createTRPCRouter({
-  createSubscription: createSubscriptionProcedure,
-  cancelSubscription: cancelSubscriptionProcedure,
-  getUsage: getTenantUsageProcedure,
-});
-
-const requestsRouter = createTRPCRouter({
-  calculateDistance: calculateDistanceProcedure,
-  getMileageLogs: getMileageLogsProcedure,
-  calculateRoundTrip: calculateRoundTripProcedure,
-  createTestJob: createTestJobProcedure,
-  acceptJob: acceptJobProcedure,
-  postMileageLog: postMileageLogProcedure,
-});
-
-console.log("[Router] example procedures:", Object.keys(exampleRouter._def.procedures));
-console.log("[Router] auth procedures:", Object.keys(authRouter._def.procedures));
-
 export const appRouter = createTRPCRouter({
-  example: exampleRouter,
-  stripe: stripeRouter,
-  auth: authRouter,
-  tenant: tenantRouter,
-  billing: billingRouter,
-  requests: requestsRouter,
+  example: createTRPCRouter({
+    hi: hiRoute,
+  }),
+  stripe: createTRPCRouter({
+    createInvoice: createInvoiceProcedure,
+  }),
+  auth: createTRPCRouter({
+    login: loginProcedure,
+    getAuditLogs: getAuditLogsProcedure,
+    createEmployee: createUserProcedure,
+    getCredentialLogs: getCredentialLogsProcedure,
+    getEmployees: getEmployeesProcedure,
+    updateEmployee: updateEmployeeProcedure,
+  }),
+  tenant: createTRPCRouter({
+    register: registerTenantProcedure,
+    getTenant: getTenantProcedure,
+    listTenants: listTenantsProcedure,
+    updateTenant: updateTenantProcedure,
+  }),
+  billing: createTRPCRouter({
+    createSubscription: createSubscriptionProcedure,
+    cancelSubscription: cancelSubscriptionProcedure,
+    getUsage: getTenantUsageProcedure,
+  }),
+  requests: createTRPCRouter({
+    calculateDistance: calculateDistanceProcedure,
+    getMileageLogs: getMileageLogsProcedure,
+    calculateRoundTrip: calculateRoundTripProcedure,
+    createTestJob: createTestJobProcedure,
+    acceptJob: acceptJobProcedure,
+    postMileageLog: postMileageLogProcedure,
+  }),
 });
 
-console.log("[Router] namespaces registered:", Object.keys(appRouter._def.procedures));
-console.log("[Router] Full app router structure:", JSON.stringify({
-  example: Object.keys(exampleRouter._def.procedures),
-  auth: Object.keys(authRouter._def.procedures),
-  stripe: Object.keys(stripeRouter._def.procedures),
-  tenant: Object.keys(tenantRouter._def.procedures),
-  billing: Object.keys(billingRouter._def.procedures),
-  requests: Object.keys(requestsRouter._def.procedures),
-}, null, 2));
-
-console.log("[Router] auth.getEmployees exists:", typeof authRouter._def.procedures.getEmployees !== 'undefined');
-console.log("[Router] auth.getCredentialLogs exists:", typeof authRouter._def.procedures.getCredentialLogs !== 'undefined');
+console.log("[Router] App router created successfully");
 
 export type AppRouter = typeof appRouter;
